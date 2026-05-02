@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Filter, Clock, ArrowRight } from "lucide-react";
+import { Search, Filter, Clock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import Fuse from "fuse.js";
 import {
   topics,
   categories,
@@ -10,12 +11,25 @@ import {
   type Category,
   type Difficulty,
 } from "@/data/topics";
+import { useApp } from "@/context/AppContext";
+
+const fuse = new Fuse(topics, {
+  keys: [
+    { name: "title",           weight: 0.50 },
+    { name: "description",     weight: 0.30 },
+    { name: "category",        weight: 0.05 },
+    { name: "sections.title",  weight: 0.15 },
+  ],
+  threshold: 0.35,
+  includeScore: true,
+});
 
 export default function Topics() {
   const [location] = useLocation();
-  const [search, setSearch] = useState("");
+  const [search, setSearch]                   = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | "All">("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "All">("All");
+  const { isComplete, completed } = useApp();
 
   // Parse query params on mount
   useEffect(() => {
@@ -27,28 +41,40 @@ export default function Topics() {
   }, []);
 
   const filtered = useMemo(() => {
-    return topics.filter(t => {
-      const matchSearch = search === "" ||
-        t.title.toLowerCase().includes(search.toLowerCase()) ||
-        t.description.toLowerCase().includes(search.toLowerCase());
-      const matchCat = selectedCategory === "All" || t.category === selectedCategory;
+    let base = topics;
+    if (search.trim()) {
+      base = fuse.search(search.trim()).map(r => r.item);
+    }
+    return base.filter(t => {
+      const matchCat  = selectedCategory === "All" || t.category === selectedCategory;
       const matchDiff = selectedDifficulty === "All" || t.difficulty === selectedDifficulty;
-      return matchSearch && matchCat && matchDiff;
+      return matchCat && matchDiff;
     });
   }, [search, selectedCategory, selectedDifficulty]);
 
   const grouped = useMemo(() => {
-    if (selectedCategory !== "All") {
-      return [{ category: selectedCategory, topics: filtered }];
+    if (selectedCategory !== "All" || search.trim()) {
+      return [{ category: selectedCategory === "All" ? "Results" : selectedCategory, topics: filtered }];
     }
     return categories
       .map(cat => ({ category: cat, topics: filtered.filter(t => t.category === cat) }))
       .filter(g => g.topics.length > 0);
-  }, [filtered, selectedCategory]);
+  }, [filtered, selectedCategory, search]);
+
+  // Recommendations: related slugs of completed topics that are not yet completed
+  const recommendations = useMemo(() => {
+    if (completed.size === 0) return [];
+    const completedTopics = topics.filter(t => completed.has(t.slug));
+    const relatedSlugs = new Set(completedTopics.flatMap(t => t.relatedSlugs));
+    return topics
+      .filter(t => relatedSlugs.has(t.slug) && !completed.has(t.slug))
+      .slice(0, 4);
+  }, [completed]);
 
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-3" data-testid="heading-topics">All Topics</h1>
@@ -57,13 +83,41 @@ export default function Topics() {
           </p>
         </div>
 
+        {/* Recommendations strip */}
+        {recommendations.length > 0 && (
+          <div className="mb-10 p-5 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <p className="text-sm font-semibold text-foreground">Continue Learning</p>
+              <span className="text-xs text-muted-foreground">— based on your progress</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {recommendations.map(t => (
+                <Link key={t.slug} href={`/topic/${t.slug}`}>
+                  <div className="group p-3.5 rounded-lg border border-border bg-card hover:border-primary/30 transition-all cursor-pointer">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColors[t.difficulty]}`}>
+                        {t.difficulty}
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">{t.readTime}m</span>
+                    </div>
+                    <p className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                      {t.title}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Search + Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-10 sticky top-16 z-10 py-4 bg-background/80 backdrop-blur-xl -mx-4 px-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="search"
-              placeholder="Search topics..."
+              placeholder="Search topics, descriptions, sections…"
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
@@ -96,6 +150,12 @@ export default function Topics() {
         <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
           <Filter className="w-3.5 h-3.5" />
           Showing {filtered.length} of {topics.length} topics
+          {completed.size > 0 && (
+            <span className="ml-2 flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {completed.size} completed
+            </span>
+          )}
         </div>
 
         {/* Grouped topics */}
@@ -113,33 +173,47 @@ export default function Topics() {
           <div className="space-y-14">
             {grouped.map(({ category, topics: catTopics }) => (
               <div key={category}>
-                <div className="flex items-center gap-3 mb-6">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${categoryColors[category as Category]}`}>
-                    {category}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{catTopics.length} topic{catTopics.length !== 1 ? "s" : ""}</span>
-                </div>
+                {category !== "Results" && (
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${categoryColors[category as Category]}`}>
+                      {category}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{catTopics.length} topic{catTopics.length !== 1 ? "s" : ""}</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {catTopics.map(topic => (
-                    <Link key={topic.slug} href={`/topic/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
-                      <div className="group h-full p-5 rounded-lg border border-border bg-card hover:border-primary/30 transition-all duration-200 cursor-pointer">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColors[topic.difficulty]}`}>
-                            {topic.difficulty}
-                          </span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {topic.readTime} min
-                          </span>
+                  {catTopics.map(topic => {
+                    const done = isComplete(topic.slug);
+                    return (
+                      <Link key={topic.slug} href={`/topic/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
+                        <div className={`group h-full p-5 rounded-lg border bg-card hover:border-primary/30 transition-all duration-200 cursor-pointer ${
+                          done ? "border-emerald-500/25 topic-completed" : "border-border"
+                        }`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColors[topic.difficulty]}`}>
+                              {topic.difficulty}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {done && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {topic.readTime} min
+                              </span>
+                            </div>
+                          </div>
+                          <h3 className={`font-semibold mb-2 group-hover:text-primary transition-colors ${done ? "text-muted-foreground" : ""}`}>
+                            {topic.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{topic.description}</p>
+                          {!done && (
+                            <div className="flex items-center gap-1 text-primary text-xs font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              Read <ArrowRight className="w-3 h-3" />
+                            </div>
+                          )}
                         </div>
-                        <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{topic.title}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{topic.description}</p>
-                        <div className="flex items-center gap-1 text-primary text-xs font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          Read <ArrowRight className="w-3 h-3" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             ))}

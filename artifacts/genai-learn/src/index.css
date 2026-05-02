@@ -240,6 +240,78 @@
   color: hsl(255 60% 45%);
 }
 
+/* ── Dark mode ────────────────────────────────────────────── */
+.dark {
+  --background:    220 13% 11%;
+  --foreground:    0 0% 92%;
+  --border:        220 13% 21%;
+  --card:          220 13% 14%;
+  --card-foreground: 0 0% 92%;
+  --card-border:   220 13% 21%;
+  --sidebar:       220 13% 12%;
+  --sidebar-foreground: 0 0% 92%;
+  --sidebar-border: 220 13% 21%;
+  --sidebar-primary: 255 65% 65%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 13% 18%;
+  --sidebar-accent-foreground: 0 0% 92%;
+  --sidebar-ring: 255 65% 65%;
+  --popover:       220 13% 14%;
+  --popover-foreground: 0 0% 92%;
+  --popover-border: 220 13% 21%;
+  --primary:       255 65% 65%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:     220 13% 18%;
+  --secondary-foreground: 0 0% 92%;
+  --muted:         220 13% 18%;
+  --muted-foreground: 0 0% 55%;
+  --accent:        200 80% 55%;
+  --accent-foreground: 0 0% 100%;
+  --destructive:   0 68% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --input:         220 13% 21%;
+  --ring:          255 65% 65%;
+  --button-outline: rgba(255,255,255,.10);
+  --elevate-1: rgba(255,255,255,.02);
+  --elevate-2: rgba(255,255,255,.04);
+  color-scheme: dark;
+}
+
+.dark .code-block {
+  background: hsl(220, 14%, 8%);
+  border-color: hsl(220, 14%, 22%);
+  color: hsl(200, 60%, 72%);
+}
+
+.dark .topic-card {
+  border-color: hsl(220 13% 21%);
+  background: hsl(220 13% 14%);
+}
+.dark .topic-card:hover {
+  border-color: hsl(255 65% 65% / 0.35);
+  background: hsl(220 13% 15%);
+}
+
+.dark .callout-info    { background: hsl(255 60% 60% / 0.10); }
+.dark .callout-paper   { background: hsl(200 75% 50% / 0.10); }
+.dark .callout-note    { background: hsl(38 80% 45% / 0.10); }
+.dark .callout-caution { background: hsl(0 72% 55% / 0.10); }
+
+.dark .ref-chip {
+  border-color: hsl(220 13% 28%);
+  color: hsl(0 0% 58%);
+  background: hsl(220 14% 12%);
+}
+.dark .ref-chip:hover {
+  border-color: hsl(255 65% 60% / 0.5);
+  color: hsl(255 65% 70%);
+}
+
+/* ── Completed topic indicator ────────────────────────────── */
+.topic-completed {
+  box-shadow: inset 3px 0 0 hsl(145 55% 44%);
+}
+
 /* ── Utilities ────────────────────────────────────────────── */
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button { @apply hidden; }
