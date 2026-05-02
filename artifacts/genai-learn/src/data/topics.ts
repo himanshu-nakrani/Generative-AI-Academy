@@ -7,6 +7,15 @@ export interface TopicSection {
   code?: string;
 }
 
+export interface Reference {
+  title: string;
+  authors: string;
+  year: number;
+  venue?: string;
+  url?: string;
+  type: "paper" | "blog" | "tweet" | "video" | "docs";
+}
+
 export interface Topic {
   id: number;
   slug: string;
@@ -17,6 +26,7 @@ export interface Topic {
   description: string;
   sections: TopicSection[];
   relatedSlugs: string[];
+  references?: Reference[];
 }
 
 export const topics: Topic[] = [
@@ -648,6 +658,47 @@ GAN applications peaked around 2019–2021. Since then, diffusion models have la
     readTime: 16,
     description: "Forward diffusion, reverse diffusion, DDPM, score matching, and noise schedules — the architecture behind Stable Diffusion and DALL-E.",
     relatedSlugs: ["gans", "vaes", "image-generation", "classifier-free-guidance"],
+    references: [
+      {
+        title: "Denoising Diffusion Probabilistic Models",
+        authors: "Ho, J., Jain, A., Abbeel, P.",
+        year: 2020,
+        venue: "NeurIPS 2020",
+        url: "https://arxiv.org/abs/2006.11239",
+        type: "paper",
+      },
+      {
+        title: "High-Resolution Image Synthesis with Latent Diffusion Models",
+        authors: "Rombach, R., Blattmann, A., Lorenz, D., Esser, P., Ommer, B.",
+        year: 2022,
+        venue: "CVPR 2022",
+        url: "https://arxiv.org/abs/2112.10752",
+        type: "paper",
+      },
+      {
+        title: "Score-Based Generative Modeling through Stochastic Differential Equations",
+        authors: "Song, Y., Sohl-Dickstein, J., Kingma, D. P., Kumar, A., et al.",
+        year: 2021,
+        venue: "ICLR 2021",
+        url: "https://arxiv.org/abs/2011.13456",
+        type: "paper",
+      },
+      {
+        title: "The Illustrated Stable Diffusion",
+        authors: "Alammar, J.",
+        year: 2022,
+        url: "https://jalammar.github.io/illustrated-stable-diffusion/",
+        type: "blog",
+      },
+      {
+        title: "Diffusion Models Beat GANs on Image Synthesis",
+        authors: "Dhariwal, P., Nichol, A.",
+        year: 2021,
+        venue: "NeurIPS 2021",
+        url: "https://arxiv.org/abs/2105.05233",
+        type: "paper",
+      },
+    ],
     sections: [
       {
         title: "The Core Idea: Learning to Denoise",
@@ -725,6 +776,38 @@ Score matching provides an alternative theoretical framework for diffusion model
     readTime: 18,
     description: "Attention mechanism, self-attention, multi-head attention, positional encoding, and the full encoder-decoder architecture.",
     relatedSlugs: ["large-language-models", "neural-networks-basics", "embeddings"],
+    references: [
+      {
+        title: "Attention Is All You Need",
+        authors: "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., Polosukhin, I.",
+        year: 2017,
+        venue: "NeurIPS 2017",
+        url: "https://arxiv.org/abs/1706.03762",
+        type: "paper",
+      },
+      {
+        title: "The Annotated Transformer",
+        authors: "Rush, A. (Harvard NLP)",
+        year: 2022,
+        url: "https://nlp.seas.harvard.edu/annotated-transformer/",
+        type: "blog",
+      },
+      {
+        title: "Let's build GPT: from scratch, in code, spelled out",
+        authors: "Karpathy, A.",
+        year: 2023,
+        url: "https://www.youtube.com/watch?v=kCc8FmEb1nY",
+        type: "video",
+      },
+      {
+        title: "Language Models are Few-Shot Learners (GPT-3)",
+        authors: "Brown, T., Mann, B., Ryder, N., et al.",
+        year: 2020,
+        venue: "NeurIPS 2020",
+        url: "https://arxiv.org/abs/2005.14165",
+        type: "paper",
+      },
+    ],
     sections: [
       {
         title: "Why Transformers? The Problem with RNNs",
@@ -819,6 +902,46 @@ GPT and most modern LLMs are decoder-only: they predict the next token based on 
     readTime: 16,
     description: "GPT architecture, autoregressive generation, tokenization, context windows, and what makes LLMs work at scale.",
     relatedSlugs: ["transformers", "prompt-engineering", "rlhf", "scaling-laws"],
+    references: [
+      {
+        title: "Language Models are Few-Shot Learners (GPT-3)",
+        authors: "Brown, T., Mann, B., Ryder, N., Subbiah, M., Kaplan, J., et al.",
+        year: 2020,
+        venue: "NeurIPS 2020",
+        url: "https://arxiv.org/abs/2005.14165",
+        type: "paper",
+      },
+      {
+        title: "Training Compute-Optimal Large Language Models (Chinchilla)",
+        authors: "Hoffmann, J., Borgeaud, S., Mensch, A., Buchatskaya, E., et al.",
+        year: 2022,
+        venue: "NeurIPS 2022",
+        url: "https://arxiv.org/abs/2203.15556",
+        type: "paper",
+      },
+      {
+        title: "Scaling Laws for Neural Language Models",
+        authors: "Kaplan, J., McCandlish, S., Henighan, T., Brown, T., et al.",
+        year: 2020,
+        venue: "arXiv:2001.08361",
+        url: "https://arxiv.org/abs/2001.08361",
+        type: "paper",
+      },
+      {
+        title: "LLM Visualization — a 3D visualization of GPT-2",
+        authors: "Bycroft, B.",
+        year: 2023,
+        url: "https://bbycroft.net/llm",
+        type: "blog",
+      },
+      {
+        title: "State of GPT — Build, evaluate, and deploy GPT-based products",
+        authors: "Karpathy, A.",
+        year: 2023,
+        url: "https://build.microsoft.com/en-US/sessions/db3f4859-cd30-4445-a0cd-553c3304f8e2",
+        type: "video",
+      },
+    ],
     sections: [
       {
         title: "What Makes a Language Model 'Large'?",
@@ -1202,6 +1325,47 @@ print(f"Distances: {distances[0]}")`
     readTime: 14,
     description: "Reward modeling, Proximal Policy Optimization (PPO), preference data, and how RLHF aligns LLMs with human values.",
     relatedSlugs: ["large-language-models", "fine-tuning", "constitutional-ai"],
+    references: [
+      {
+        title: "Training language models to follow instructions with human feedback (InstructGPT)",
+        authors: "Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L., et al.",
+        year: 2022,
+        venue: "NeurIPS 2022",
+        url: "https://arxiv.org/abs/2203.02155",
+        type: "paper",
+      },
+      {
+        title: "Learning to summarize from human feedback",
+        authors: "Stiennon, N., Ouyang, L., Wu, J., Ziegler, D., et al.",
+        year: 2020,
+        venue: "NeurIPS 2020",
+        url: "https://arxiv.org/abs/2009.01325",
+        type: "paper",
+      },
+      {
+        title: "Direct Preference Optimization: Your Language Model is Secretly a Reward Model",
+        authors: "Rafailov, R., Sharma, A., Mitchell, E., Ermon, S., Manning, C. D., Finn, C.",
+        year: 2023,
+        venue: "NeurIPS 2023",
+        url: "https://arxiv.org/abs/2305.18290",
+        type: "paper",
+      },
+      {
+        title: "Proximal Policy Optimization Algorithms",
+        authors: "Schulman, J., Wolski, F., Dhariwal, P., Radford, A., Klimov, O.",
+        year: 2017,
+        venue: "arXiv:1707.06347",
+        url: "https://arxiv.org/abs/1707.06347",
+        type: "paper",
+      },
+      {
+        title: "RLHF: Reinforcement Learning from Human Feedback",
+        authors: "Lambert, N., Castricato, L., von Werra, L., Havrilla, A.",
+        year: 2022,
+        url: "https://huggingface.co/blog/rlhf",
+        type: "blog",
+      },
+    ],
     sections: [
       {
         title: "Why RLHF?",
@@ -1827,6 +1991,45 @@ The frontier: Developing world models that can reason about causality, support c
     readTime: 9,
     description: "How text is broken into tokens, BPE, WordPiece, SentencePiece, vocabulary sizes, and why tokenization shapes what LLMs can and can't do.",
     relatedSlugs: ["neural-networks-basics", "large-language-models", "transformers"],
+    references: [
+      {
+        title: "Neural Machine Translation of Rare Words with Subword Units (BPE)",
+        authors: "Sennrich, R., Haddow, B., Birch, A.",
+        year: 2016,
+        venue: "ACL 2016",
+        url: "https://arxiv.org/abs/1508.07909",
+        type: "paper",
+      },
+      {
+        title: "SentencePiece: A simple and language independent subword tokenizer",
+        authors: "Kudo, T., Richardson, J.",
+        year: 2018,
+        venue: "EMNLP 2018",
+        url: "https://arxiv.org/abs/1808.06226",
+        type: "paper",
+      },
+      {
+        title: "Tokenization Is More Than You Think — Andrej Karpathy on X",
+        authors: "Karpathy, A.",
+        year: 2023,
+        url: "https://x.com/karpathy/status/1657949234079248384",
+        type: "tweet",
+      },
+      {
+        title: "Let's build the GPT Tokenizer",
+        authors: "Karpathy, A.",
+        year: 2024,
+        url: "https://www.youtube.com/watch?v=zduSFxRajkE",
+        type: "video",
+      },
+      {
+        title: "Tokenization Bugs and Anomalies — a practical guide",
+        authors: "Strauss, N.",
+        year: 2023,
+        url: "https://towardsdatascience.com/the-hidden-biases-of-tokenization-in-large-language-models-f4c0965e6fbd",
+        type: "blog",
+      },
+    ],
     sections: [
       {
         title: "What is a Token?",
@@ -1896,6 +2099,46 @@ Context window limits: A "128K token context" isn't 128K words. For typical Engl
     readTime: 14,
     description: "Self-attention, multi-head attention, the QKV formulation, causal masking, and why attention is the foundation of modern AI.",
     relatedSlugs: ["transformers", "positional-encoding", "large-language-models"],
+    references: [
+      {
+        title: "Attention Is All You Need",
+        authors: "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., et al.",
+        year: 2017,
+        venue: "NeurIPS 2017",
+        url: "https://arxiv.org/abs/1706.03762",
+        type: "paper",
+      },
+      {
+        title: "Neural Machine Translation by Jointly Learning to Align and Translate",
+        authors: "Bahdanau, D., Cho, K., Bengio, Y.",
+        year: 2015,
+        venue: "ICLR 2015",
+        url: "https://arxiv.org/abs/1409.0473",
+        type: "paper",
+      },
+      {
+        title: "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+        authors: "Dao, T., Fu, D. Y., Ermon, S., Rudra, A., Ré, C.",
+        year: 2022,
+        venue: "NeurIPS 2022",
+        url: "https://arxiv.org/abs/2205.14135",
+        type: "paper",
+      },
+      {
+        title: "The Illustrated Transformer",
+        authors: "Alammar, J.",
+        year: 2018,
+        url: "https://jalammar.github.io/illustrated-transformer/",
+        type: "blog",
+      },
+      {
+        title: "Visualizing Attention, a Transformer's Heart",
+        authors: "Olah, C., Carter, S.",
+        year: 2016,
+        url: "https://distill.pub/2016/augmented-rnns/",
+        type: "blog",
+      },
+    ],
     sections: [
       {
         title: "The Core Idea",
@@ -2274,6 +2517,47 @@ The inference challenge: generating a few seconds of video can take minutes on c
     readTime: 13,
     description: "Superposition, circuits, features, probing, and the effort to reverse-engineer what neural networks have learned.",
     relatedSlugs: ["attention-mechanism", "constitutional-ai", "transformers"],
+    references: [
+      {
+        title: "A Mathematical Framework for Transformer Circuits",
+        authors: "Elhage, N., Nanda, N., Olsson, C., Henighan, T., et al. (Anthropic)",
+        year: 2021,
+        venue: "Anthropic",
+        url: "https://transformer-circuits.pub/2021/framework/index.html",
+        type: "paper",
+      },
+      {
+        title: "Toy Models of Superposition",
+        authors: "Elhage, N., Hume, T., Olsson, C., Schiefer, N., et al. (Anthropic)",
+        year: 2022,
+        venue: "Anthropic",
+        url: "https://transformer-circuits.pub/2022/toy_model/index.html",
+        type: "paper",
+      },
+      {
+        title: "In-context Learning and Induction Heads",
+        authors: "Olsson, C., Elhage, N., Nanda, N., Joseph, N., et al. (Anthropic)",
+        year: 2022,
+        venue: "Anthropic",
+        url: "https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html",
+        type: "paper",
+      },
+      {
+        title: "Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet",
+        authors: "Templeton, A., et al. (Anthropic)",
+        year: 2024,
+        venue: "Anthropic",
+        url: "https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html",
+        type: "paper",
+      },
+      {
+        title: "200 Concrete Open Problems in Mechanistic Interpretability",
+        authors: "Nanda, N.",
+        year: 2022,
+        url: "https://www.alignmentforum.org/posts/LbrPTJ4fmABEdEnLf/200-concrete-open-problems-in-mechanistic-interpretability",
+        type: "blog",
+      },
+    ],
     sections: [
       {
         title: "Why Interpretability?",
@@ -2316,6 +2600,48 @@ The program of circuits research is ambitious: can we fully decompose a transfor
     readTime: 10,
     description: "MMLU, HellaSwag, HumanEval, MT-Bench, Arena rankings, and how to properly evaluate language models.",
     relatedSlugs: ["large-language-models", "rlhf", "prompt-engineering"],
+    references: [
+      {
+        title: "Measuring Massive Multitask Language Understanding (MMLU)",
+        authors: "Hendrycks, D., Burns, C., Basart, S., Zou, A., Mazeika, M., Song, D., Steinhardt, J.",
+        year: 2021,
+        venue: "ICLR 2021",
+        url: "https://arxiv.org/abs/2009.03300",
+        type: "paper",
+      },
+      {
+        title: "Evaluating Large Language Models Trained on Code (HumanEval)",
+        authors: "Chen, M., Tworek, J., Jun, H., Yuan, Q., et al. (OpenAI)",
+        year: 2021,
+        venue: "arXiv:2107.03374",
+        url: "https://arxiv.org/abs/2107.03374",
+        type: "paper",
+      },
+      {
+        title: "Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference",
+        authors: "Zheng, L., Chiang, W-L., Sheng, Y., Zhuang, S., Wu, Z., et al. (LMSYS)",
+        year: 2023,
+        venue: "ICML 2024",
+        url: "https://arxiv.org/abs/2306.05685",
+        type: "paper",
+      },
+      {
+        title: "Lost in the Middle: How Language Models Use Long Contexts",
+        authors: "Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., et al.",
+        year: 2023,
+        venue: "TACL 2024",
+        url: "https://arxiv.org/abs/2307.03172",
+        type: "paper",
+      },
+      {
+        title: "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena",
+        authors: "Zheng, L., Chiang, W-L., Sheng, Y., et al.",
+        year: 2023,
+        venue: "NeurIPS 2023",
+        url: "https://arxiv.org/abs/2306.05685",
+        type: "paper",
+      },
+    ],
     sections: [
       {
         title: "The Evaluation Problem",
@@ -2414,6 +2740,46 @@ The fundamental issue: as long as models process instructions and data in the sa
     readTime: 13,
     description: "Alignment problem, reward hacking, deceptive alignment, interpretability, and the research agenda for making powerful AI safe.",
     relatedSlugs: ["constitutional-ai", "rlhf", "mechanistic-interpretability"],
+    references: [
+      {
+        title: "Concrete Problems in AI Safety",
+        authors: "Amodei, D., Olah, C., Steinhardt, J., Christiano, P., Schulman, J., Mané, D.",
+        year: 2016,
+        venue: "arXiv:1606.06565",
+        url: "https://arxiv.org/abs/1606.06565",
+        type: "paper",
+      },
+      {
+        title: "Constitutional AI: Harmlessness from AI Feedback",
+        authors: "Bai, Y., Jones, A., Ndousse, K., Askell, A., et al. (Anthropic)",
+        year: 2022,
+        venue: "arXiv:2212.08073",
+        url: "https://arxiv.org/abs/2212.08073",
+        type: "paper",
+      },
+      {
+        title: "Risks from Learned Optimization in Advanced Machine Learning Systems",
+        authors: "Hubinger, E., van Merwijk, C., Mikulik, V., Skalse, J., Garrabrant, S.",
+        year: 2019,
+        venue: "arXiv:1906.01820",
+        url: "https://arxiv.org/abs/1906.01820",
+        type: "paper",
+      },
+      {
+        title: "Specification gaming: the flip side of AI ingenuity",
+        authors: "Krakovna, V., et al. (DeepMind)",
+        year: 2020,
+        url: "https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/",
+        type: "blog",
+      },
+      {
+        title: "AGI Safety Fundamentals — Alignment Course",
+        authors: "BlueDot Impact",
+        year: 2023,
+        url: "https://aisafetyfundamentals.com/alignment/",
+        type: "docs",
+      },
+    ],
     sections: [
       {
         title: "Why AI Safety?",
