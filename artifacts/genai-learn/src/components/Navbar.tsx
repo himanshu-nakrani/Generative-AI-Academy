@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
-import { Menu, X, Sun, Moon, Flame, BarChart3 } from "lucide-react";
+import { Menu, X, Sun, Moon, Flame, BarChart3, Network, Highlighter } from "lucide-react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 
@@ -38,16 +38,27 @@ export default function Navbar() {
             {navLinks.map(({ href, label }) => {
               const active = location === href || (href !== "/" && location.startsWith(href));
               return (
-                <Link
-                  key={href} href={href}
+                <Link key={href} href={href}
                   className={`px-3.5 py-1.5 rounded-md text-sm transition-colors ${
                     active ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
+                  }`}>
                   {label}
                 </Link>
               );
             })}
+            {/* Map & Notes */}
+            <Link href="/map"
+              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
+                location === "/map" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}>
+              <Network className="w-3.5 h-3.5" />Map
+            </Link>
+            <Link href="/notes"
+              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
+                location === "/notes" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}>
+              <Highlighter className="w-3.5 h-3.5" />Notes
+            </Link>
           </div>
 
           {/* Right side */}
@@ -65,62 +76,61 @@ export default function Navbar() {
                 </span>
               </Link>
             )}
-            <button
-              onClick={toggleDark}
-              aria-label="Toggle dark mode"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
+            <button onClick={toggleDark} aria-label="Toggle dark mode"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <Link
-              href="/topics"
-              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-            >
+            <Link href="/topics"
+              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
               Start Learning
             </Link>
           </div>
 
+          {/* Mobile right */}
           <div className="flex items-center gap-1 md:hidden">
             {streak > 0 && (
               <span className="flex items-center gap-0.5 text-xs font-medium text-orange-500">
                 <Flame className="w-3.5 h-3.5" />{streak}
               </span>
             )}
-            <button
-              onClick={toggleDark}
-              aria-label="Toggle dark mode"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
+            <button onClick={toggleDark} aria-label="Toggle dark mode"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <button
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
+            <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}>
               {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
         </div>
       </div>
 
+      {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-border bg-background px-5 py-3 space-y-0.5">
           {navLinks.map(({ href, label }) => (
-            <Link
-              key={href} href={href}
+            <Link key={href} href={href}
               className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
                 location === href ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
-              onClick={() => setMobileOpen(false)}
-            >
+              onClick={() => setMobileOpen(false)}>
               {label}
             </Link>
           ))}
+          <Link href="/map" onClick={() => setMobileOpen(false)}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <Network className="w-4 h-4" />Concept Map
+            </div>
+          </Link>
+          <Link href="/notes" onClick={() => setMobileOpen(false)}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <Highlighter className="w-4 h-4" />My Notes
+            </div>
+          </Link>
           {completedCount > 0 && (
             <Link href="/progress" onClick={() => setMobileOpen(false)}>
               <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                <BarChart3 className="w-4 h-4" />
-                My Progress ({completedCount}/{topics.length})
+                <BarChart3 className="w-4 h-4" />My Progress ({completedCount}/{topics.length})
               </div>
             </Link>
           )}

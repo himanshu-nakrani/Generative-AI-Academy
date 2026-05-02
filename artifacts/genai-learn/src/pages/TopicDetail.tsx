@@ -1,48 +1,133 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useParams } from "wouter";
 import {
   ArrowLeft, ArrowRight, Clock, BookOpen, ChevronRight,
   Copy, Check, ExternalLink, FileText, Globe, MessageSquare,
-  Video, BookMarked, CheckCircle2, Circle, Keyboard, X, List
+  Video, BookMarked, CheckCircle2, Circle, Keyboard, X, List,
+  Play, Loader2, Terminal, Highlighter, SlidersHorizontal,
 } from "lucide-react";
 import { getTopicBySlug, topics, categoryColors, difficultyColors, type Reference } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
+import { usePrefs, fontSizePx, lineHeightVal } from "@/context/PrefsContext";
+import { useHighlights, HIGHLIGHT_COLORS, type Highlight } from "@/hooks/useHighlights";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import { diagramRegistry } from "@/components/Diagrams";
+import { getPrerequisites } from "@/data/prerequisites";
 
-function ReadingProgress() {
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const scrollTop = el.scrollTop || document.body.scrollTop;
-      const scrollHeight = el.scrollHeight - el.clientHeight;
-      setProgress(scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return <div className="reading-progress" style={{ width: `${progress}%` }} />;
+/* ── Pyodide singleton ───────────────────────────────────── */
+const CDN = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
+
+interface PyodideAPI {
+  runPythonAsync: (c: string) => Promise<unknown>;
+  setStdout: (o: { batched: (s: string) => void }) => void;
+  setStderr: (o: { batched: (s: string) => void }) => void;
+}
+interface WindowWithPyodide {
+  loadPyodide?: (opts: { indexURL: string }) => Promise<PyodideAPI>;
 }
 
+let _py: PyodideAPI | null = null;
+let _pyLoading: Promise<PyodideAPI> | null = null;
+
+function loadPyodide(): Promise<PyodideAPI> {
+  if (_py) return Promise.resolve(_py);
+  if (_pyLoading) return _pyLoading;
+  _pyLoading = new Promise<PyodideAPI>((res, rej) => {
+    const boot = async () => {
+      try {
+        const win = window as unknown as WindowWithPyodide;
+        const py = await win.loadPyodide!({ indexURL: CDN });
+        _py = py; res(py);
+      } catch(e) { rej(e); }
+    };
+    if ((window as unknown as WindowWithPyodide).loadPyodide) { boot(); return; }
+    const s = document.createElement("script");
+    s.src = CDN + "pyodide.js";
+    s.onload = boot;
+    s.onerror = () => rej(new Error("Failed to load Pyodide CDN script"));
+    document.head.appendChild(s);
+  });
+  return _pyLoading;
+}
+
+/* ── ReadingProgress ─────────────────────────────────────── */
+function ReadingProgress() {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const fn = () => {
+      const h = document.documentElement;
+      const sh = h.scrollHeight - h.clientHeight;
+      setP(sh > 0 ? ((h.scrollTop || document.body.scrollTop) / sh) * 100 : 0);
+    };
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+  return <div className="reading-progress" style={{ width: `${p}%` }} />;
+}
+
+/* ── CodeBlock ───────────────────────────────────────────── */
+type RunStatus = "idle" | "loading" | "running" | "done" | "error";
+
 function CodeBlock({ code, language = "python" }: { code: string; language?: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied]         = useState(false);
+  const [runStatus, setRunStatus]   = useState<RunStatus>("idle");
+  const [output, setOutput]         = useState("");
+
   const copy = () => {
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   };
+
+  const run = async () => {
+    setRunStatus("loading"); setOutput("");
+    try {
+      const py = await loadPyodide();
+      setRunStatus("running");
+      const lines: string[] = [];
+      py!.setStdout({ batched: t => lines.push(t) });
+      py!.setStderr({ batched: t => lines.push(`[stderr] ${t}`) });
+      await py!.runPythonAsync(code);
+      setOutput(lines.join("\n") || "✓ (no output)");
+      setRunStatus("done");
+    } catch (e: unknown) {
+      setOutput(e instanceof Error ? e.message : String(e));
+      setRunStatus("error");
+    }
+  };
+
+  const isRunnable = language === "python";
+
   return (
     <div className="mt-5 rounded-md overflow-hidden border border-border">
       <div className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b border-border">
         <span className="text-xs font-mono text-muted-foreground">{language}</span>
         <div className="flex items-center gap-2">
-          {language === "python" && (
+          {isRunnable && (
             <a href="https://colab.new" target="_blank" rel="noopener noreferrer"
                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 rounded hover:bg-muted">
               <ExternalLink className="w-3 h-3" />Colab
             </a>
+          )}
+          {isRunnable && runStatus === "idle" && (
+            <button onClick={run}
+              className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors px-2 py-0.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-medium">
+              <Play className="w-3 h-3" />Run
+            </button>
+          )}
+          {isRunnable && runStatus === "loading" && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground px-2">
+              <Loader2 className="w-3 h-3 animate-spin" />Loading Python…
+            </span>
+          )}
+          {isRunnable && runStatus === "running" && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground px-2">
+              <Loader2 className="w-3 h-3 animate-spin" />Running…
+            </span>
+          )}
+          {isRunnable && (runStatus === "done" || runStatus === "error") && (
+            <button onClick={() => { setRunStatus("idle"); setOutput(""); }}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 rounded hover:bg-muted">
+              <Play className="w-3 h-3" />Run again
+            </button>
           )}
           <button onClick={copy}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 rounded hover:bg-muted">
@@ -51,10 +136,24 @@ function CodeBlock({ code, language = "python" }: { code: string; language?: str
         </div>
       </div>
       <pre className="code-block rounded-none border-none overflow-x-auto"><code>{code}</code></pre>
+
+      {/* Output */}
+      {(runStatus === "done" || runStatus === "error") && (
+        <div className={`border-t border-border px-4 py-3 ${runStatus === "error" ? "bg-red-50/60 dark:bg-red-900/10" : "bg-emerald-50/40 dark:bg-emerald-900/10"}`}>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Terminal className={`w-3 h-3 ${runStatus === "error" ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"}`} />
+            <span className={`text-xs font-medium ${runStatus === "error" ? "text-red-600 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"}`}>
+              {runStatus === "error" ? "Error" : "Output"}
+            </span>
+          </div>
+          <pre className={`text-xs font-mono whitespace-pre-wrap leading-relaxed ${runStatus === "error" ? "text-red-700 dark:text-red-300" : "text-foreground"}`}>{output}</pre>
+        </div>
+      )}
     </div>
   );
 }
 
+/* ── RefTypeIcon ─────────────────────────────────────────── */
 function RefTypeIcon({ type }: { type: Reference["type"] }) {
   const cls = "w-3 h-3 flex-shrink-0";
   if (type === "paper")  return <FileText className={cls} />;
@@ -65,6 +164,7 @@ function RefTypeIcon({ type }: { type: Reference["type"] }) {
   return <Globe className={cls} />;
 }
 
+/* ── ReferenceList ───────────────────────────────────────── */
 function ReferenceList({ refs }: { refs: Reference[] }) {
   return (
     <div className="mt-14 pt-8 border-t border-border">
@@ -77,7 +177,7 @@ function ReferenceList({ refs }: { refs: Reference[] }) {
               {ref.url
                 ? <a href={ref.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-1.5 group/link">
                     <span className="text-sm text-foreground group-hover/link:text-primary transition-colors leading-snug">{ref.title}</span>
-                    <ExternalLink className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0 group-hover/link:text-primary transition-colors" />
+                    <ExternalLink className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0 group-hover/link:text-primary" />
                   </a>
                 : <span className="text-sm text-foreground leading-snug">{ref.title}</span>}
               <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -85,7 +185,7 @@ function ReferenceList({ refs }: { refs: Reference[] }) {
                   <RefTypeIcon type={ref.type} />
                   <span className="text-xs">{ref.authors}</span>
                 </span>
-                {ref.year && <span className="text-xs text-muted-foreground/60">{ref.year}</span>}
+                {ref.year  && <span className="text-xs text-muted-foreground/60">{ref.year}</span>}
                 {ref.venue && <span className="text-xs px-1.5 py-0 rounded border border-border text-muted-foreground/70 font-mono">{ref.venue}</span>}
               </div>
             </div>
@@ -96,16 +196,25 @@ function ReferenceList({ refs }: { refs: Reference[] }) {
   );
 }
 
-function ContentParagraph({ text }: { text: string }) {
-  const isNumberedList = /^\d+\./.test(text.trim());
-  const isBulletList   = /^[-•]/.test(text.trim());
-  if (isNumberedList || isBulletList) {
+/* ── ContentParagraph ────────────────────────────────────── */
+const HL_MAP: Record<string, { bg: string }> = {
+  yellow: { bg: "#fef08acc" },
+  blue:   { bg: "#bfdbfecc" },
+  green:  { bg: "#bbf7d0cc" },
+  pink:   { bg: "#fbcfe8cc" },
+};
+
+function ContentParagraph({ text, highlights = [] }: { text: string; highlights?: Highlight[] }) {
+  const isNumbered = /^\d+\./.test(text.trim());
+  const isBullet   = /^[-•]/.test(text.trim());
+
+  if (isNumbered || isBullet) {
     const lines = text.split("\n").filter(Boolean);
     return (
       <ul className="space-y-2 my-1">
         {lines.map((line, k) => (
           <li key={k} className="flex gap-2.5">
-            <span className="text-primary/50 flex-shrink-0 mt-0.5 text-sm font-mono">{isNumberedList ? `${k + 1}.` : "–"}</span>
+            <span className="text-primary/50 flex-shrink-0 mt-0.5 text-sm font-mono">{isNumbered ? `${k + 1}.` : "–"}</span>
             <span className="text-[0.9375rem] text-muted-foreground leading-relaxed">
               {line.replace(/^\d+\.\s*/, "").replace(/^[-•]\s*/, "")}
             </span>
@@ -114,28 +223,190 @@ function ContentParagraph({ text }: { text: string }) {
       </ul>
     );
   }
-  const parts = text.split(/\*\*(.+?)\*\*/g);
+
+  // Find matching highlights
+  const active = highlights
+    .map(h => ({ h, idx: text.indexOf(h.selectedText) }))
+    .filter(({ idx }) => idx !== -1)
+    .sort((a, b) => a.idx - b.idx);
+
+  if (active.length === 0) {
+    const parts = text.split(/\*\*(.+?)\*\*/g);
+    return (
+      <p className="text-[0.9375rem] text-muted-foreground leading-[1.85]">
+        {parts.map((part, j) => j % 2 === 1
+          ? <strong key={j} className="text-foreground font-medium">{part}</strong>
+          : part)}
+      </p>
+    );
+  }
+
+  // Build segments with highlight marks
+  let pos = 0;
+  const segments: { text: string; hl?: Highlight }[] = [];
+  for (const { h, idx } of active) {
+    if (idx > pos) segments.push({ text: text.slice(pos, idx) });
+    segments.push({ text: h.selectedText, hl: h });
+    pos = idx + h.selectedText.length;
+  }
+  if (pos < text.length) segments.push({ text: text.slice(pos) });
+
   return (
     <p className="text-[0.9375rem] text-muted-foreground leading-[1.85]">
-      {parts.map((part, j) => j % 2 === 1 ? <strong key={j} className="text-foreground font-medium">{part}</strong> : part)}
+      {segments.map((seg, i) =>
+        seg.hl
+          ? <mark key={i} style={{ background: HL_MAP[seg.hl.color]?.bg ?? "#fef08acc", borderRadius: "2px", padding: "0 2px" }}>{seg.text}</mark>
+          : seg.text
+      )}
     </p>
   );
 }
 
+/* ── PrerequisitesBanner ─────────────────────────────────── */
+function PrerequisitesBanner({ slug }: { slug: string }) {
+  const { isComplete } = useApp();
+  const prereqs = getPrerequisites(slug);
+  if (prereqs.length === 0) return null;
+
+  const prereqTopics = prereqs
+    .map(s => topics.find(t => t.slug === s))
+    .filter(Boolean) as (typeof topics)[number][];
+
+  const incomplete = prereqTopics.filter(t => !isComplete(t.slug));
+  if (incomplete.length === 0) return null;
+
+  return (
+    <div className="mb-8 p-4 rounded-md border border-amber-200 dark:border-amber-800/40 bg-amber-50/60 dark:bg-amber-900/10 fade-up">
+      <p className="text-xs font-semibold text-amber-700 dark:text-amber-500 mb-2.5">
+        Recommended reading first
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {prereqTopics.map(t => {
+          const done = isComplete(t.slug);
+          return (
+            <Link key={t.slug} href={`/topic/${t.slug}`}>
+              <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors cursor-pointer ${
+                done
+                  ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/30"
+              }`}>
+                {done
+                  ? <CheckCircle2 className="w-3 h-3" />
+                  : <Circle className="w-3 h-3 opacity-40" />}
+                {t.title}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── SelectionToolbar ────────────────────────────────────── */
+function SelectionToolbar({ x, y, text, onHighlight, onDismiss }: {
+  x: number; y: number; text: string;
+  onHighlight: (text: string, colorId: string) => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      className="fixed z-[80] flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border bg-background shadow-xl"
+      style={{ left: x, top: y - 8, transform: "translate(-50%, -100%)" }}
+      onMouseDown={e => e.preventDefault()}
+    >
+      <Highlighter className="w-3 h-3 text-muted-foreground mr-0.5 flex-shrink-0" />
+      <span className="text-xs text-muted-foreground pr-1.5 border-r border-border mr-0.5">Highlight</span>
+      {HIGHLIGHT_COLORS.map(c => (
+        <button key={c.id} title={c.label}
+          className="w-5 h-5 rounded-full border-2 hover:scale-110 transition-transform flex-shrink-0"
+          style={{ background: c.bg, borderColor: c.border }}
+          onClick={() => { onHighlight(text, c.id); onDismiss(); }}
+        />
+      ))}
+      <button className="ml-0.5 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        onClick={onDismiss}>
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
+/* ── ReadingPrefsPanel ───────────────────────────────────── */
+function ReadingPrefsPanel({ onClose }: { onClose: () => void }) {
+  const { fontSize, lineHeight, focusMode, wideColumn, setFontSize, setLineHeight, toggleFocusMode, toggleWideCol } = usePrefs();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    setTimeout(() => document.addEventListener("mousedown", handler), 50);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  return (
+    <div ref={ref} className="absolute right-0 top-9 z-[70] w-58 rounded-lg border border-border bg-background shadow-xl p-4 min-w-[220px]">
+      <p className="text-xs font-semibold mb-3">Reading Preferences</p>
+
+      <div className="mb-3">
+        <p className="text-xs text-muted-foreground mb-1.5">Font size</p>
+        <div className="flex gap-1.5">
+          {(["sm", "base", "lg"] as const).map(s => (
+            <button key={s} onClick={() => setFontSize(s)}
+              className={`flex-1 py-1.5 rounded-md text-xs font-medium border transition-all ${
+                fontSize === s ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+              }`}>
+              {s === "sm" ? "A−" : s === "base" ? "A" : "A+"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <p className="text-xs text-muted-foreground mb-1.5">Line spacing</p>
+        <div className="flex gap-1.5">
+          {(["compact", "normal", "relaxed"] as const).map(lh => (
+            <button key={lh} onClick={() => setLineHeight(lh)}
+              className={`flex-1 py-1 rounded-md text-xs font-medium border transition-all ${
+                lineHeight === lh ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+              }`}>
+              {lh === "compact" ? "Tight" : lh === "normal" ? "Normal" : "Loose"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1.5 pt-2.5 border-t border-border">
+        {[
+          { label: "Focus mode",   active: focusMode,  toggle: toggleFocusMode },
+          { label: "Wide column",  active: wideColumn, toggle: toggleWideCol   },
+        ].map(({ label, active, toggle }) => (
+          <button key={label} onClick={toggle}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-md text-xs border transition-colors ${
+              active ? "bg-primary/8 text-primary border-primary/20" : "text-muted-foreground hover:bg-muted border-transparent"
+            }`}>
+            <span>{label}</span>
+            <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 transition-colors ${active ? "bg-primary border-primary" : "border-muted-foreground/40"}`} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── ShortcutsModal ──────────────────────────────────────── */
 function ShortcutsModal({ onClose }: { onClose: () => void }) {
   const shortcuts = [
-    { key: "j / k",    desc: "Jump to next / previous section" },
-    { key: "[ / ]",    desc: "Go to previous / next topic" },
-    { key: "c",        desc: "Toggle mark as complete" },
-    { key: "?",        desc: "Show / hide this dialog" },
+    { key: "j / k",  desc: "Jump to next / previous section" },
+    { key: "[ / ]",  desc: "Go to previous / next topic" },
+    { key: "c",      desc: "Toggle mark as complete" },
+    { key: "?",      desc: "Show / hide this dialog" },
   ];
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <div
-        className="relative w-full max-w-sm rounded-xl border border-border bg-background shadow-lg p-5"
-        onClick={e => e.stopPropagation()}
-      >
+      <div className="relative w-full max-w-sm rounded-xl border border-border bg-background shadow-lg p-5" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Keyboard className="w-4 h-4 text-muted-foreground" />
@@ -153,22 +424,22 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </div>
-        <p className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground">Press <kbd className="px-1 py-0.5 rounded border border-border bg-muted font-mono">?</kbd> anywhere on a topic page to toggle this.</p>
+        <p className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground">
+          Press <kbd className="px-1 py-0.5 rounded border border-border bg-muted font-mono">?</kbd> anywhere to toggle.
+        </p>
       </div>
     </div>
   );
 }
 
+/* ── MobileTOC ───────────────────────────────────────────── */
 function MobileTOC({
   sections, activeSection, onClose,
 }: { sections: { title: string; code?: string }[]; activeSection: number; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[90] flex flex-col justify-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-      <div
-        className="relative bg-background border-t border-border rounded-t-2xl max-h-[70vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
-      >
+      <div className="relative bg-background border-t border-border rounded-t-2xl max-h-[70vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-background border-b border-border px-5 py-3 flex items-center justify-between">
           <p className="text-sm font-semibold flex items-center gap-2"><List className="w-4 h-4 text-muted-foreground" />Contents</p>
           <button onClick={onClose} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted"><X className="w-4 h-4" /></button>
@@ -176,13 +447,10 @@ function MobileTOC({
         <ol className="px-5 py-3 space-y-0.5">
           {sections.map((section, i) => (
             <li key={i}>
-              <a
-                href={`#section-${i}`}
-                onClick={onClose}
+              <a href={`#section-${i}`} onClick={onClose}
                 className={`flex items-center gap-3 text-sm py-2.5 px-2 rounded-md transition-colors ${
                   activeSection === i ? "text-primary bg-primary/8 font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
+                }`}>
                 <span className={`text-xs font-mono w-5 text-right tabular-nums ${activeSection === i ? "text-primary/70" : "text-muted-foreground/40"}`}>{i + 1}</span>
                 <span>{section.title}</span>
                 {section.code && <span className="ml-auto text-xs font-mono text-muted-foreground/40">code</span>}
@@ -195,43 +463,59 @@ function MobileTOC({
   );
 }
 
+/* ── TopicDetail ─────────────────────────────────────────── */
 export default function TopicDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { isComplete, toggleComplete, recordVisit } = useApp();
-  const [activeSection, setActiveSection] = useState(0);
-  const [showShortcuts, setShowShortcuts] = useState(false);
-  const [showMobileTOC, setShowMobileTOC] = useState(false);
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
-  const topic = getTopicBySlug(slug);
+  const { fontSize, lineHeight, focusMode, wideColumn } = usePrefs();
+  const { topicHighlights, add: addHighlight } = useHighlights(slug);
 
-  // Record visit for streak / recently read
-  useEffect(() => {
-    if (slug) recordVisit(slug);
-  }, [slug, recordVisit]);
+  const [activeSection,  setActiveSection]  = useState(0);
+  const [showShortcuts,  setShowShortcuts]  = useState(false);
+  const [showMobileTOC,  setShowMobileTOC]  = useState(false);
+  const [showPrefs,      setShowPrefs]      = useState(false);
+  const [selToolbar,     setSelToolbar]     = useState<{ x: number; y: number; text: string } | null>(null);
+
+  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
+  const articleRef  = useRef<HTMLDivElement>(null);
+  const topic       = getTopicBySlug(slug);
+
+  useEffect(() => { if (slug) recordVisit(slug); }, [slug, recordVisit]);
 
   // Scrollspy
   useEffect(() => {
     if (!topic) return;
     sectionRefs.current = topic.sections.map((_, i) => document.getElementById(`section-${i}`));
-    const observer = new IntersectionObserver(
-      entries => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(Number(entry.target.id.replace("section-", "")));
-          }
-        }
-      },
+    const obs = new IntersectionObserver(
+      entries => { for (const e of entries) if (e.isIntersecting) setActiveSection(Number(e.target.id.replace("section-", ""))); },
       { rootMargin: "-15% 0px -65% 0px" }
     );
-    sectionRefs.current.forEach(el => el && observer.observe(el));
-    return () => observer.disconnect();
+    sectionRefs.current.forEach(el => el && obs.observe(el));
+    return () => obs.disconnect();
   }, [topic]);
 
-  const topicIndex  = topics.findIndex(t => t.slug === slug);
-  const prevTopic   = topicIndex > 0 ? topics[topicIndex - 1] : null;
-  const nextTopic   = topicIndex < topics.length - 1 ? topics[topicIndex + 1] : null;
+  // Text selection → highlight toolbar
+  const onArticleMouseUp = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) { setSelToolbar(null); return; }
+    const text = sel.toString().trim();
+    if (text.length < 3 || text.length > 600) { setSelToolbar(null); return; }
+    if (!articleRef.current) return;
+    const range = sel.getRangeAt(0);
+    if (!articleRef.current.contains(range.commonAncestorContainer)) { setSelToolbar(null); return; }
+    const rect = range.getBoundingClientRect();
+    setSelToolbar({ x: rect.left + rect.width / 2, y: rect.top, text });
+  }, []);
 
-  // Keyboard navigation
+  const dismissToolbar = useCallback(() => {
+    setSelToolbar(null);
+    window.getSelection()?.removeAllRanges();
+  }, []);
+
+  const topicIndex = topics.findIndex(t => t.slug === slug);
+  const prevTopic  = topicIndex > 0 ? topics[topicIndex - 1] : null;
+  const nextTopic  = topicIndex < topics.length - 1 ? topics[topicIndex + 1] : null;
+
   useKeyboardNav({
     sections: topic?.sections ?? [],
     activeSection,
@@ -258,14 +542,29 @@ export default function TopicDetail() {
   const relatedTopics = topic.relatedSlugs.map(s => topics.find(t => t.slug === s)).filter(Boolean) as typeof topics;
   const codeCount     = topic.sections.filter(s => s.code).length;
 
+  // Content style from reading prefs
+  const contentStyle = {
+    fontSize:   fontSizePx[fontSize],
+    lineHeight: lineHeightVal[lineHeight],
+  };
+
+  const maxW = wideColumn ? "max-w-7xl" : "max-w-6xl";
+
   return (
     <>
       <ReadingProgress />
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
       {showMobileTOC  && <MobileTOC sections={topic.sections} activeSection={activeSection} onClose={() => setShowMobileTOC(false)} />}
+      {selToolbar     && (
+        <SelectionToolbar
+          x={selToolbar.x} y={selToolbar.y} text={selToolbar.text}
+          onHighlight={(text, colorId) => addHighlight(text, colorId)}
+          onDismiss={dismissToolbar}
+        />
+      )}
 
       <div className="min-h-screen py-8 px-5 sm:px-8">
-        <div className="max-w-6xl mx-auto">
+        <div className={`${maxW} mx-auto`}>
 
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-8 fade-up">
@@ -278,7 +577,7 @@ export default function TopicDetail() {
 
           <div className="flex gap-10 xl:gap-14">
 
-            {/* ── Main Content ─────────────────────── */}
+            {/* ── Main Content ────────────────────── */}
             <div className="flex-1 min-w-0">
 
               {/* Header */}
@@ -295,16 +594,28 @@ export default function TopicDetail() {
                       <CheckCircle2 className="w-3 h-3" />Completed
                     </span>
                   )}
-                  <button
-                    onClick={() => setShowShortcuts(true)}
-                    className="ml-auto hidden sm:flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-                  >
-                    <Keyboard className="w-3 h-3" /><span className="font-mono">?</span>
-                  </button>
+
+                  {/* Reading prefs button */}
+                  <div className="relative ml-auto flex items-center gap-2">
+                    <button onClick={() => setShowPrefs(p => !p)}
+                      className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-md border transition-colors ${
+                        showPrefs ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}>
+                      <SlidersHorizontal className="w-3 h-3" />Aa
+                    </button>
+                    <button onClick={() => setShowShortcuts(true)}
+                      className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+                      <Keyboard className="w-3 h-3" /><span className="font-mono">?</span>
+                    </button>
+                    {showPrefs && <ReadingPrefsPanel onClose={() => setShowPrefs(false)} />}
+                  </div>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-bold leading-tight mb-3">{topic.title}</h1>
                 <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">{topic.description}</p>
               </header>
+
+              {/* Prerequisites */}
+              <PrerequisitesBanner slug={slug} />
 
               {/* Table of Contents */}
               <div className="mb-10 p-4 rounded-md border border-border bg-card/50 fade-up-2">
@@ -314,12 +625,10 @@ export default function TopicDetail() {
                 <ol className="space-y-1.5">
                   {topic.sections.map((section, i) => (
                     <li key={i}>
-                      <a
-                        href={`#section-${i}`}
+                      <a href={`#section-${i}`}
                         className={`flex items-center gap-2.5 text-sm transition-colors group py-0.5 ${
                           activeSection === i ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
+                        }`}>
                         <span className={`text-xs font-mono w-4 text-right tabular-nums transition-colors ${activeSection === i ? "text-primary/70" : "text-muted-foreground/40"}`}>{i + 1}</span>
                         <span>{section.title}</span>
                         {section.code && <span className="ml-auto text-xs font-mono text-muted-foreground/40">code</span>}
@@ -330,7 +639,7 @@ export default function TopicDetail() {
               </div>
 
               {/* Sections */}
-              <div className="space-y-12">
+              <div ref={articleRef} className="space-y-12" onMouseUp={onArticleMouseUp} style={contentStyle}>
                 {topic.sections.map((section, i) => (
                   <div key={i} id={`section-${i}`} className="scroll-mt-20 fade-up">
                     <div className="flex items-baseline gap-3 mb-4">
@@ -338,7 +647,9 @@ export default function TopicDetail() {
                       <h2 className="text-xl font-semibold">{section.title}</h2>
                     </div>
                     <div className="pl-8 space-y-4">
-                      {section.content.split("\n\n").map((para, j) => <ContentParagraph key={j} text={para} />)}
+                      {section.content.split("\n\n").map((para, j) => (
+                        <ContentParagraph key={j} text={para} highlights={topicHighlights} />
+                      ))}
                       {section.code && <CodeBlock code={section.code} />}
                       {diagramRegistry[`${topic.slug}:${i}`]}
                     </div>
@@ -346,25 +657,34 @@ export default function TopicDetail() {
                 ))}
               </div>
 
+              {/* Highlight tip */}
+              {topicHighlights.length > 0 && (
+                <div className="mt-8 flex items-center gap-2 text-xs text-muted-foreground/60">
+                  <Highlighter className="w-3 h-3" />
+                  {topicHighlights.length} highlight{topicHighlights.length !== 1 ? "s" : ""} saved —{" "}
+                  <Link href="/notes" className="hover:text-primary transition-colors">view all notes →</Link>
+                </div>
+              )}
+
               {/* References */}
               {topic.references && topic.references.length > 0 && <ReferenceList refs={topic.references} />}
 
               {/* Mark as Complete */}
               <div className="mt-10 pt-8 border-t border-border flex items-center justify-between gap-4">
-                <button
-                  onClick={() => toggleComplete(slug)}
+                <button onClick={() => toggleComplete(slug)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                     complete
                       ? "border-emerald-500/40 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/12"
                       : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-muted"
-                  }`}
-                >
-                  {complete ? <><CheckCircle2 className="w-4 h-4" />Completed — click to undo</> : <><Circle className="w-4 h-4" />Mark as complete</>}
+                  }`}>
+                  {complete
+                    ? <><CheckCircle2 className="w-4 h-4" />Completed — click to undo</>
+                    : <><Circle className="w-4 h-4" />Mark as complete</>}
                 </button>
                 <kbd className="hidden sm:block px-2 py-0.5 text-xs font-mono text-muted-foreground/40 border border-border rounded">c</kbd>
               </div>
 
-              {/* Prev / Next Nav */}
+              {/* Prev / Next */}
               <div className="mt-6 grid grid-cols-2 gap-4">
                 {prevTopic ? (
                   <Link href={`/topic/${prevTopic.slug}`}>
@@ -384,143 +704,142 @@ export default function TopicDetail() {
                 ) : <div />}
               </div>
 
-              {/* Keyboard hint (mobile) */}
               <p className="mt-6 text-xs text-muted-foreground/40 text-center sm:hidden">
                 Use <kbd className="px-1 border border-border rounded font-mono">[</kbd> / <kbd className="px-1 border border-border rounded font-mono">]</kbd> to navigate topics
               </p>
             </div>
 
-            {/* ── Sidebar ──────────────────────────── */}
-            <aside className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
-              <div className="sticky top-20 space-y-5">
+            {/* ── Sidebar ─────────────────────────── */}
+            {!focusMode && (
+              <aside className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
+                <div className="sticky top-20 space-y-5">
 
-                {/* Article meta */}
-                <div className="p-4 rounded-md border border-border bg-card">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">This Article</p>
-                  <dl className="space-y-2 mb-4">
-                    {[
-                      { label: "Sections",      val: topic.sections.length },
-                      { label: "Read time",     val: `${topic.readTime} min` },
-                      { label: "Code examples", val: codeCount },
-                      ...(topic.references ? [{ label: "Sources", val: topic.references.length }] : []),
-                    ].map(({ label, val }) => (
-                      <div key={label} className="flex justify-between">
-                        <dt className="text-xs text-muted-foreground">{label}</dt>
-                        <dd className="text-xs font-medium tabular-nums">{val}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <button
-                    onClick={() => toggleComplete(slug)}
-                    className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition-all ${
-                      complete
-                        ? "border-emerald-500/40 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400"
-                        : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-muted"
-                    }`}
-                  >
-                    {complete ? <><CheckCircle2 className="w-3.5 h-3.5" />Completed</> : <><Circle className="w-3.5 h-3.5" />Mark complete</>}
-                  </button>
-                </div>
-
-                {/* Scrollspy TOC */}
-                <div className="p-4 rounded-md border border-border bg-card">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">On this page</p>
-                  <ol className="space-y-1">
-                    {topic.sections.map((section, i) => (
-                      <li key={i}>
-                        <a
-                          href={`#section-${i}`}
-                          className={`flex items-center gap-2 text-xs py-0.5 transition-colors ${
-                            activeSection === i ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${activeSection === i ? "bg-primary" : "bg-border"}`} />
-                          <span className="line-clamp-1">{section.title}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-
-                {/* Key Papers */}
-                {topic.references && topic.references.filter(r => r.type === "paper").length > 0 && (
                   <div className="p-4 rounded-md border border-border bg-card">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Key Papers</p>
-                    <div className="space-y-3">
-                      {topic.references.filter(r => r.type === "paper").map((ref, i) => (
-                        <div key={i}>
-                          {ref.url
-                            ? <a href={ref.url} target="_blank" rel="noopener noreferrer" className="group">
-                                <p className="text-xs text-foreground group-hover:text-primary transition-colors leading-snug mb-0.5">{ref.title}</p>
-                                <p className="text-xs text-muted-foreground/60 leading-snug">
-                                  {ref.authors.split(",")[0].trim()}{ref.authors.includes(",") ? " et al." : ""} · {ref.year}
-                                  {ref.venue && <span className="ml-1 font-mono">· {ref.venue}</span>}
-                                </p>
-                              </a>
-                            : <div>
-                                <p className="text-xs text-foreground leading-snug mb-0.5">{ref.title}</p>
-                                <p className="text-xs text-muted-foreground/60">{ref.authors.split(",")[0].trim()}{ref.authors.includes(",") ? " et al." : ""} · {ref.year}</p>
-                              </div>}
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">This Article</p>
+                    <dl className="space-y-2 mb-4">
+                      {[
+                        { label: "Sections",      val: topic.sections.length },
+                        { label: "Read time",     val: `${topic.readTime} min` },
+                        { label: "Code examples", val: codeCount },
+                        ...(topic.references ? [{ label: "Sources", val: topic.references.length }] : []),
+                        ...(topicHighlights.length > 0 ? [{ label: "Your highlights", val: topicHighlights.length }] : []),
+                      ].map(({ label, val }) => (
+                        <div key={label} className="flex justify-between">
+                          <dt className="text-xs text-muted-foreground">{label}</dt>
+                          <dd className="text-xs font-medium tabular-nums">{val}</dd>
                         </div>
                       ))}
-                    </div>
+                    </dl>
+                    <button onClick={() => toggleComplete(slug)}
+                      className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition-all ${
+                        complete
+                          ? "border-emerald-500/40 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400"
+                          : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-muted"
+                      }`}>
+                      {complete
+                        ? <><CheckCircle2 className="w-3.5 h-3.5" />Completed</>
+                        : <><Circle className="w-3.5 h-3.5" />Mark complete</>}
+                    </button>
                   </div>
-                )}
 
-                {/* Related Topics */}
-                {relatedTopics.length > 0 && (
+                  {/* Scrollspy TOC */}
                   <div className="p-4 rounded-md border border-border bg-card">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Related Topics</p>
-                    <div className="space-y-1">
-                      {relatedTopics.map(rel => (
-                        <Link key={rel.slug} href={`/topic/${rel.slug}`}>
-                          <div className="group flex items-center justify-between gap-2 py-1.5 px-2 rounded hover:bg-muted transition-colors cursor-pointer">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              {isComplete(rel.slug) && <CheckCircle2 className="w-3 h-3 flex-shrink-0 text-emerald-500" />}
-                              <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">{rel.title}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                              <span className="text-xs text-muted-foreground/50 tabular-nums">{rel.readTime}m</span>
-                              <ChevronRight className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                            </div>
-                          </div>
-                        </Link>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">On this page</p>
+                    <ol className="space-y-1">
+                      {topic.sections.map((section, i) => (
+                        <li key={i}>
+                          <a href={`#section-${i}`}
+                            className={`flex items-center gap-2 text-xs py-0.5 transition-colors ${
+                              activeSection === i ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                            }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${activeSection === i ? "bg-primary" : "bg-border"}`} />
+                            <span className="line-clamp-1">{section.title}</span>
+                          </a>
+                        </li>
                       ))}
-                    </div>
+                    </ol>
                   </div>
-                )}
 
-                {/* Nav links */}
-                <div className="p-4 rounded-md border border-border bg-card">
-                  <div className="space-y-1">
-                    <Link href="/topics" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                      <BookOpen className="w-3.5 h-3.5" />All Topics
-                    </Link>
-                    <Link href="/learning-paths" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                      <ArrowRight className="w-3.5 h-3.5" />Learning Paths
-                    </Link>
-                    <Link href="/glossary" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                      <BookMarked className="w-3.5 h-3.5" />Glossary
-                    </Link>
-                    <Link href="/progress" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                      <CheckCircle2 className="w-3.5 h-3.5" />My Progress
-                    </Link>
+                  {/* Key Papers */}
+                  {topic.references && topic.references.filter(r => r.type === "paper").length > 0 && (
+                    <div className="p-4 rounded-md border border-border bg-card">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Key Papers</p>
+                      <div className="space-y-3">
+                        {topic.references.filter(r => r.type === "paper").map((ref, i) => (
+                          <div key={i}>
+                            {ref.url
+                              ? <a href={ref.url} target="_blank" rel="noopener noreferrer" className="group">
+                                  <p className="text-xs text-foreground group-hover:text-primary transition-colors leading-snug mb-0.5">{ref.title}</p>
+                                  <p className="text-xs text-muted-foreground/60 leading-snug">
+                                    {ref.authors.split(",")[0].trim()}{ref.authors.includes(",") ? " et al." : ""} · {ref.year}
+                                    {ref.venue && <span className="ml-1 font-mono">· {ref.venue}</span>}
+                                  </p>
+                                </a>
+                              : <div>
+                                  <p className="text-xs text-foreground leading-snug mb-0.5">{ref.title}</p>
+                                  <p className="text-xs text-muted-foreground/60">{ref.authors.split(",")[0].trim()}{ref.authors.includes(",") ? " et al." : ""} · {ref.year}</p>
+                                </div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Related Topics */}
+                  {relatedTopics.length > 0 && (
+                    <div className="p-4 rounded-md border border-border bg-card">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Related Topics</p>
+                      <div className="space-y-1">
+                        {relatedTopics.map(rel => (
+                          <Link key={rel.slug} href={`/topic/${rel.slug}`}>
+                            <div className="group flex items-center justify-between gap-2 py-1.5 px-2 rounded hover:bg-muted transition-colors cursor-pointer">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                {isComplete(rel.slug) && <CheckCircle2 className="w-3 h-3 flex-shrink-0 text-emerald-500" />}
+                                <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">{rel.title}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <span className="text-xs text-muted-foreground/50 tabular-nums">{rel.readTime}m</span>
+                                <ChevronRight className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary" />
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nav links */}
+                  <div className="p-4 rounded-md border border-border bg-card">
+                    <div className="space-y-1">
+                      <Link href="/topics" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        <BookOpen className="w-3.5 h-3.5" />All Topics
+                      </Link>
+                      <Link href="/learning-paths" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        <ArrowRight className="w-3.5 h-3.5" />Learning Paths
+                      </Link>
+                      <Link href="/glossary" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        <BookMarked className="w-3.5 h-3.5" />Glossary
+                      </Link>
+                      <Link href="/progress" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        <CheckCircle2 className="w-3.5 h-3.5" />My Progress
+                      </Link>
+                      <Link href="/notes" className="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        <Highlighter className="w-3.5 h-3.5" />My Notes
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </aside>
+              </aside>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile: floating TOC button */}
+      {/* Mobile TOC button */}
       <div className="lg:hidden fixed bottom-5 right-5 z-40">
-        <button
-          onClick={() => setShowMobileTOC(true)}
-          className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-foreground text-background text-xs font-medium shadow-lg hover:opacity-90 transition-opacity"
-        >
-          <List className="w-3.5 h-3.5" />
-          Contents
+        <button onClick={() => setShowMobileTOC(true)}
+          className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-foreground text-background text-xs font-medium shadow-lg hover:opacity-90 transition-opacity">
+          <List className="w-3.5 h-3.5" />Contents
           <span className="font-mono opacity-60">{activeSection + 1}/{topic.sections.length}</span>
         </button>
       </div>
