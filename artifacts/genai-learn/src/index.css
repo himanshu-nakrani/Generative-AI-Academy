@@ -60,55 +60,55 @@
   --button-outline: rgba(0,0,0,.10);
   --badge-outline: rgba(0,0,0,.05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0,.03);
-  --elevate-2: rgba(0,0,0,.08);
+  --elevate-1: rgba(0,0,0,.02);
+  --elevate-2: rgba(0,0,0,.05);
 
-  /* Refined palette — less saturated, more professional */
-  --background:    220 20% 6%;
-  --foreground:    220 15% 92%;
-  --border:        220 15% 16%;
-  --card:          220 18% 9%;
-  --card-foreground: 220 15% 92%;
-  --card-border:   220 15% 15%;
-  --sidebar:       220 18% 7%;
-  --sidebar-foreground: 220 15% 92%;
-  --sidebar-border: 220 15% 14%;
-  --sidebar-primary: 255 65% 62%;
+  /* Clean Editorial — light grey base, near-black type, violet accent */
+  --background:    0 0% 96%;
+  --foreground:    0 0% 7%;
+  --border:        0 0% 90%;
+  --card:          0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  --card-border:   0 0% 90%;
+  --sidebar:       0 0% 98%;
+  --sidebar-foreground: 0 0% 7%;
+  --sidebar-border: 0 0% 90%;
+  --sidebar-primary: 255 60% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 220 18% 12%;
-  --sidebar-accent-foreground: 220 15% 92%;
-  --sidebar-ring: 255 65% 62%;
-  --popover:       220 18% 9%;
-  --popover-foreground: 220 15% 92%;
-  --popover-border: 220 15% 15%;
-  --primary:       255 65% 62%;
+  --sidebar-accent: 0 0% 93%;
+  --sidebar-accent-foreground: 0 0% 7%;
+  --sidebar-ring: 255 60% 50%;
+  --popover:       0 0% 100%;
+  --popover-foreground: 0 0% 7%;
+  --popover-border: 0 0% 90%;
+  --primary:       255 60% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary:     220 18% 13%;
-  --secondary-foreground: 220 15% 92%;
-  --muted:         220 18% 11%;
-  --muted-foreground: 220 12% 50%;
-  --accent:        200 80% 46%;
+  --secondary:     0 0% 93%;
+  --secondary-foreground: 0 0% 7%;
+  --muted:         0 0% 93%;
+  --muted-foreground: 0 0% 40%;
+  --accent:        200 75% 38%;
   --accent-foreground: 0 0% 100%;
-  --destructive:   0 72% 57%;
+  --destructive:   0 72% 50%;
   --destructive-foreground: 0 0% 100%;
-  --input:         220 15% 16%;
-  --ring:          255 65% 62%;
-  --chart-1: 255 65% 62%;
-  --chart-2: 200 80% 46%;
-  --chart-3: 145 60% 42%;
-  --chart-4: 38 85% 52%;
-  --chart-5: 0 72% 57%;
+  --input:         0 0% 90%;
+  --ring:          255 60% 50%;
+  --chart-1: 255 60% 50%;
+  --chart-2: 200 75% 38%;
+  --chart-3: 145 55% 36%;
+  --chart-4: 38 80% 45%;
+  --chart-5: 0 72% 50%;
 
   --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --radius: .5rem;
-  --shadow-2xs: 0px 1px 0px 0px rgba(0,0,0,.3);
-  --shadow-xs:  0px 2px 4px 0px rgba(0,0,0,.35);
-  --shadow-sm:  0px 2px 8px 0px rgba(0,0,0,.4), 0px 1px 2px -1px rgba(0,0,0,.3);
-  --shadow:     0px 4px 12px 0px rgba(0,0,0,.45), 0px 1px 2px -1px rgba(0,0,0,.35);
-  --shadow-md:  0px 6px 16px 0px rgba(0,0,0,.5), 0px 2px 4px -1px rgba(0,0,0,.4);
-  --shadow-lg:  0px 10px 24px 0px rgba(0,0,0,.55), 0px 4px 6px -1px rgba(0,0,0,.45);
+  --shadow-2xs: 0px 1px 0px 0px rgba(0,0,0,.06);
+  --shadow-xs:  0px 2px 4px 0px rgba(0,0,0,.07);
+  --shadow-sm:  0px 2px 8px 0px rgba(0,0,0,.09), 0px 1px 2px -1px rgba(0,0,0,.06);
+  --shadow:     0px 4px 12px 0px rgba(0,0,0,.10), 0px 1px 2px -1px rgba(0,0,0,.07);
+  --shadow-md:  0px 6px 16px 0px rgba(0,0,0,.11), 0px 2px 4px -1px rgba(0,0,0,.08);
+  --shadow-lg:  0px 10px 24px 0px rgba(0,0,0,.12), 0px 4px 6px -1px rgba(0,0,0,.09);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -128,7 +128,7 @@
 
 /* ── Typography ───────────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, hsl(255,65%,70%), hsl(200,80%,60%));
+  background: linear-gradient(135deg, hsl(255,60%,48%), hsl(200,75%,36%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -137,24 +137,24 @@
 /* ── Code ─────────────────────────────────────────────────── */
 .code-block {
   font-family: 'JetBrains Mono', monospace;
-  background: hsl(220, 20%, 4%);
-  border: 1px solid hsl(220, 15%, 14%);
+  background: hsl(0, 0%, 97%);
+  border: 1px solid hsl(0, 0%, 88%);
   border-radius: 0 0 6px 6px;
   padding: 1rem 1.25rem;
   overflow-x: auto;
   font-size: 0.8125rem;
   line-height: 1.75;
-  color: hsl(200, 60%, 78%);
+  color: hsl(255, 35%, 30%);
 }
 
 /* ── Prose ────────────────────────────────────────────────── */
 .prose-content p {
-  color: hsl(220, 12%, 72%);
+  color: hsl(0, 0%, 30%);
   line-height: 1.85;
   font-size: 0.9375rem;
 }
 .prose-content h1, .prose-content h2, .prose-content h3 {
-  color: hsl(220, 15%, 92%);
+  color: hsl(0, 0%, 7%);
   font-family: 'Inter', sans-serif;
 }
 
@@ -166,10 +166,10 @@
   line-height: 1.65;
   border-left: 3px solid;
 }
-.callout-info    { background: hsl(255 65% 62% / 0.07); border-color: hsl(255 65% 62% / 0.5); color: hsl(220 15% 80%); }
-.callout-paper   { background: hsl(200 80% 46% / 0.07); border-color: hsl(200 80% 46% / 0.5); color: hsl(220 15% 80%); }
-.callout-note    { background: hsl(38 85% 52% / 0.07);  border-color: hsl(38 85% 52% / 0.5);  color: hsl(220 15% 80%); }
-.callout-caution { background: hsl(0 72% 57% / 0.07);   border-color: hsl(0 72% 57% / 0.5);   color: hsl(220 15% 80%); }
+.callout-info    { background: hsl(255 60% 50% / 0.06); border-color: hsl(255 60% 50% / 0.4); color: hsl(0 0% 20%); }
+.callout-paper   { background: hsl(200 75% 38% / 0.06); border-color: hsl(200 75% 38% / 0.4); color: hsl(0 0% 20%); }
+.callout-note    { background: hsl(38 80% 45% / 0.06);  border-color: hsl(38 80% 45% / 0.4);  color: hsl(0 0% 20%); }
+.callout-caution { background: hsl(0 72% 50% / 0.06);   border-color: hsl(0 72% 50% / 0.4);   color: hsl(0 0% 20%); }
 
 /* ── Reading Progress ─────────────────────────────────────── */
 .reading-progress {
@@ -208,13 +208,14 @@
 
 /* ── Topic card hover ─────────────────────────────────────── */
 .topic-card {
-  border: 1px solid hsl(220 15% 16%);
-  background: hsl(220 18% 9%);
-  transition: border-color 0.15s, background 0.15s;
+  border: 1px solid hsl(0 0% 90%);
+  background: hsl(0 0% 100%);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 .topic-card:hover {
-  border-color: hsl(255 65% 62% / 0.35);
-  background: hsl(220 18% 10%);
+  border-color: hsl(255 60% 50% / 0.3);
+  background: hsl(0 0% 100%);
+  box-shadow: 0 2px 10px rgba(0,0,0,.07);
 }
 
 /* ── Reference chip ───────────────────────────────────────── */
@@ -226,17 +227,17 @@
   font-family: 'JetBrains Mono', monospace;
   padding: 2px 7px;
   border-radius: 3px;
-  border: 1px solid hsl(220 15% 20%);
-  color: hsl(220 12% 52%);
-  background: hsl(220 18% 8%);
+  border: 1px solid hsl(0 0% 86%);
+  color: hsl(0 0% 42%);
+  background: hsl(0 0% 97%);
   text-decoration: none;
   transition: border-color 0.12s, color 0.12s;
   vertical-align: middle;
   cursor: pointer;
 }
 .ref-chip:hover {
-  border-color: hsl(255 65% 62% / 0.5);
-  color: hsl(255 65% 72%);
+  border-color: hsl(255 60% 50% / 0.5);
+  color: hsl(255 60% 45%);
 }
 
 /* ── Utilities ────────────────────────────────────────────── */
