@@ -8,6 +8,7 @@ import {
 import { getTopicBySlug, topics, categoryColors, difficultyColors, type Reference } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
+import { diagramRegistry } from "@/components/Diagrams";
 
 function ReadingProgress() {
   const [progress, setProgress] = useState(0);
@@ -339,6 +340,7 @@ export default function TopicDetail() {
                     <div className="pl-8 space-y-4">
                       {section.content.split("\n\n").map((para, j) => <ContentParagraph key={j} text={para} />)}
                       {section.code && <CodeBlock code={section.code} />}
+                      {diagramRegistry[`${topic.slug}:${i}`]}
                     </div>
                   </div>
                 ))}
