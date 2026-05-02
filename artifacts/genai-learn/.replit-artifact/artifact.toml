@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "GenAI Learn"
+version = "1.0.0"
+id = "artifacts/genai-learn"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21785
+
+[services.development]
+run = "pnpm --filter @workspace/genai-learn run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/genai-learn", "run", "build" ]
+publicDir = "artifacts/genai-learn/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21785"
+BASE_PATH = "/"
