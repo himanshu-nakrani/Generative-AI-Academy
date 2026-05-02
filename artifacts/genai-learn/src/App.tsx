@@ -10,6 +10,7 @@ import TopicDetail from "@/pages/TopicDetail";
 import LearningPaths from "@/pages/LearningPaths";
 import Resources from "@/pages/Resources";
 import Glossary from "@/pages/Glossary";
+import Progress from "@/pages/Progress";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/learning-paths" component={LearningPaths} />
           <Route path="/resources" component={Resources} />
           <Route path="/glossary" component={Glossary} />
+          <Route path="/progress" component={Progress} />
           <Route component={NotFound} />
         </Switch>
       </main>
