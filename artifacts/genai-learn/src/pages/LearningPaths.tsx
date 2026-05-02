@@ -4,21 +4,31 @@ import { topics, learningPaths, difficultyColors, categoryColors } from "@/data/
 
 const pathKeys = ["beginner", "intermediate", "advanced"] as const;
 
+const pathAccent: Record<string, string> = {
+  beginner:     "bg-emerald-600",
+  intermediate: "bg-violet-600",
+  advanced:     "bg-slate-700",
+};
+
 export default function LearningPaths() {
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen py-14 px-5 sm:px-8">
+      <div className="max-w-3xl mx-auto">
+
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold mb-4" data-testid="heading-learning-paths">Guided Learning Paths</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Three structured tracks designed to take you from complete beginner to research-level understanding. Follow a path or mix and match topics as you explore.
+        <div className="mb-14 border-b border-border pb-10">
+          <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+            Guided Tracks
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight mb-3">Learning Paths</h1>
+          <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
+            Three structured tracks designed to take you from first principles to research-level understanding. Follow a path or jump directly to any topic.
           </p>
         </div>
 
         {/* Paths */}
         <div className="space-y-16">
-          {pathKeys.map(key => {
+          {pathKeys.map((key, pathIdx) => {
             const path = learningPaths[key];
             const pathTopics = path.slugs
               .map(slug => topics.find(t => t.slug === slug))
@@ -26,72 +36,62 @@ export default function LearningPaths() {
             const totalReadTime = pathTopics.reduce((sum, t) => sum + t.readTime, 0);
 
             return (
-              <div key={key} className="relative" data-testid={`path-${key}`}>
+              <div key={key}>
                 {/* Path header */}
-                <div className="flex items-start gap-4 mb-8">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${path.color} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                    <span className="text-white font-bold text-lg">
-                      {key === "beginner" ? "1" : key === "intermediate" ? "2" : "3"}
+                <div className="flex items-start gap-4 mb-6">
+                  <div className={`w-9 h-9 rounded-md ${pathAccent[key]} flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-white font-bold text-sm font-mono">
+                      {String(pathIdx + 1).padStart(2, "0")}
                     </span>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold mb-1">{path.title}</h2>
-                    <p className="text-muted-foreground">{path.subtitle}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    <h2 className="text-xl font-bold tracking-tight mb-0.5">{path.title}</h2>
+                    <p className="text-sm text-muted-foreground">{path.subtitle}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <CheckCircle2 className="w-3 h-3" />
                         {pathTopics.length} topics
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        ~{Math.round(totalReadTime / 60 * 10) / 10}h total reading
+                        <Clock className="w-3 h-3" />
+                        ~{Math.round(totalReadTime / 60 * 10) / 10}h reading
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Topic list with connector */}
-                <div className="ml-6 relative">
-                  <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-border via-border to-transparent" />
-                  <div className="space-y-3 pl-8">
-                    {pathTopics.map((topic, i) => (
-                      <div key={topic.slug} className="relative" data-testid={`path-topic-${topic.slug}`}>
-                        {/* Connector dot */}
-                        <div className="absolute -left-8 top-1/2 -translate-y-1/2 flex items-center">
-                          <div className={`w-3 h-3 rounded-full border-2 bg-background border-primary/50`} />
-                        </div>
-                        <Link href={`/topic/${topic.slug}`}>
-                          <div className="group flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/40 card-glow transition-all duration-200 cursor-pointer">
-                            <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-mono font-bold text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-sm group-hover:text-primary transition-colors">{topic.title}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{topic.description}</div>
-                            </div>
-                            <div className="flex items-center gap-3 flex-shrink-0">
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[topic.category]}`}>
-                                {topic.category}
-                              </span>
-                              <span className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
-                                <Clock className="w-3 h-3" />
-                                {topic.readTime}m
-                              </span>
-                              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
+                {/* Topic list */}
+                <div className="border border-border rounded-lg overflow-hidden">
+                  {pathTopics.map((topic, i) => (
+                    <Link key={topic.slug} href={`/topic/${topic.slug}`}>
+                      <div className="group flex items-center gap-4 px-5 py-3.5 border-b border-border last:border-b-0 bg-card hover:bg-muted/40 transition-colors cursor-pointer">
+                        <span className="text-xs font-mono text-muted-foreground/50 w-5 text-right tabular-nums flex-shrink-0">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium group-hover:text-primary transition-colors leading-snug">
+                            {topic.title}
                           </div>
-                        </Link>
+                          <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{topic.description}</div>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium hidden sm:inline ${categoryColors[topic.category]}`}>
+                            {topic.category}
+                          </span>
+                          <span className="text-xs text-muted-foreground tabular-nums">{topic.readTime}m</span>
+                          <ArrowRight className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </Link>
+                  ))}
                 </div>
 
                 {/* Start button */}
-                <div className="ml-6 pl-8 mt-4">
-                  <Link href={`/topic/${pathTopics[0]?.slug}`} data-testid={`button-start-${key}-path`}>
-                    <button className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r ${path.color} text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg`}>
+                <div className="mt-4">
+                  <Link href={`/topic/${pathTopics[0]?.slug}`}>
+                    <button className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-foreground text-background text-sm font-medium hover:opacity-80 transition-opacity">
                       Start {path.title}
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </Link>
                 </div>
@@ -101,16 +101,17 @@ export default function LearningPaths() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-20 p-8 rounded-2xl border border-border bg-card text-center">
-          <h3 className="text-xl font-bold mb-2">Prefer to explore freely?</h3>
-          <p className="text-muted-foreground mb-6 text-sm">Browse all topics by category or difficulty and create your own path.</p>
-          <Link href="/topics" data-testid="button-browse-all-topics">
-            <button className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border bg-muted text-foreground font-semibold text-sm hover:bg-muted/70 transition-colors">
+        <div className="mt-16 pt-10 border-t border-border">
+          <p className="text-sm font-semibold mb-1">Prefer to explore freely?</p>
+          <p className="text-sm text-muted-foreground mb-4">Browse all topics by category or difficulty and create your own path.</p>
+          <Link href="/topics">
+            <button className="inline-flex items-center gap-2 px-5 py-2 rounded-md border border-border bg-card text-foreground text-sm font-medium hover:bg-muted transition-colors">
               Browse All Topics
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </Link>
         </div>
+
       </div>
     </div>
   );

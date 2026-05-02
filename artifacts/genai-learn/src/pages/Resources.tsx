@@ -1,56 +1,66 @@
 import { ExternalLink, BookOpen, GraduationCap, Wrench } from "lucide-react";
 import { resources } from "@/data/topics";
 
-const categoryIcons: Record<string, typeof BookOpen> = {
-  "Foundational Papers": BookOpen,
-  "Courses & Books": GraduationCap,
-  "Tools & Frameworks": Wrench,
+const categoryMeta: Record<string, { icon: React.ReactNode; label: string }> = {
+  "Foundational Papers": { icon: <BookOpen className="w-4 h-4" />, label: "01" },
+  "Courses & Books":     { icon: <GraduationCap className="w-4 h-4" />, label: "02" },
+  "Tools & Frameworks":  { icon: <Wrench className="w-4 h-4" />, label: "03" },
 };
 
 export default function Resources() {
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen py-14 px-5 sm:px-8">
+      <div className="max-w-3xl mx-auto">
+
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-3" data-testid="heading-resources">Resources</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
-            A curated collection of papers, books, courses, and tools to go deeper. Each resource is hand-picked for quality and relevance.
+        <div className="mb-14 border-b border-border pb-10">
+          <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+            Reference Library
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight mb-3">Resources</h1>
+          <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
+            Curated papers, textbooks, courses, and tools — selected for depth and lasting relevance.
           </p>
         </div>
 
         {/* Resource sections */}
-        <div className="space-y-12">
+        <div className="space-y-14">
           {resources.map(section => {
-            const Icon = categoryIcons[section.category] ?? BookOpen;
+            const meta = categoryMeta[section.category];
             return (
-              <div key={section.category} data-testid={`section-${section.category.toLowerCase().replace(/\s+/g, "-")}`}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center">
-                    <Icon className="w-4.5 h-4.5 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-bold">{section.category}</h2>
+              <div key={section.category}>
+                {/* Section heading */}
+                <div className="flex items-baseline gap-3 mb-6">
+                  <span className="text-xs font-mono font-bold text-muted-foreground/50">
+                    {meta?.label ?? "–"}
+                  </span>
+                  <h2 className="text-lg font-bold tracking-tight">{section.category}</h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {section.items.map(item => (
+
+                {/* Items — editorial table layout */}
+                <div className="border border-border rounded-lg overflow-hidden">
+                  {section.items.map((item, i) => (
                     <a
                       key={item.title}
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group p-5 rounded-2xl border border-border bg-card hover:border-primary/40 card-glow transition-all duration-200 block"
-                      data-testid={`resource-${item.title.toLowerCase().replace(/\s+/g, "-").substring(0, 20)}`}
+                      className="group flex items-start gap-4 px-5 py-4 border-b border-border last:border-b-0 bg-card hover:bg-muted/40 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="font-semibold text-sm leading-snug group-hover:text-primary transition-colors">{item.title}</h3>
-                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                      </div>
-                      {"author" in item && item.author && (
-                        <div className="text-xs text-muted-foreground mb-1.5">
-                          {item.author}{"year" in item && item.year ? ` · ${item.year}` : ""}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm font-semibold group-hover:text-primary transition-colors leading-snug">
+                            {item.title}
+                          </span>
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
                         </div>
-                      )}
-                      <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                        {"author" in item && item.author && (
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {item.author}{"year" in item && item.year ? ` · ${item.year}` : ""}
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-1">{item.description}</p>
+                      </div>
                     </a>
                   ))}
                 </div>
@@ -59,32 +69,27 @@ export default function Resources() {
           })}
         </div>
 
-        {/* Tips */}
-        <div className="mt-16 p-8 rounded-2xl border border-border bg-card/50">
-          <h3 className="font-bold text-lg mb-4">Learning Tips</h3>
-          <ul className="space-y-3 text-sm text-muted-foreground">
-            <li className="flex items-start gap-2">
-              <span className="text-primary font-bold mt-0.5">1.</span>
-              Start with the Beginner Learning Path to build strong foundations before diving into models.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary font-bold mt-0.5">2.</span>
-              Read papers alongside code implementations — abstract concepts become clear when you see them in PyTorch.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary font-bold mt-0.5">3.</span>
-              Andrej Karpathy's videos on implementing transformers and GPT from scratch are essential viewing.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary font-bold mt-0.5">4.</span>
-              Hugging Face is the de-facto standard for working with models — learn their ecosystem early.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary font-bold mt-0.5">5.</span>
-              Build something with what you learn. The best way to understand RAG is to build a RAG system.
-            </li>
-          </ul>
+        {/* Learning tips */}
+        <div className="mt-16 pt-10 border-t border-border">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-6">Learning Notes</h3>
+          <div className="space-y-3">
+            {[
+              "Build foundations before papers — the math pays off.",
+              "Read papers alongside code implementations. Abstract concepts become concrete in PyTorch.",
+              "Karpathy's from-scratch series (makemore, nanoGPT) is essential.",
+              "Learn HuggingFace early — it's the standard for working with models.",
+              "Build something with every concept. The best way to understand RAG is to build a RAG system.",
+            ].map((tip, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <span className="text-xs font-mono font-bold text-muted-foreground/40 mt-0.5 w-5 text-right flex-shrink-0">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="text-sm text-muted-foreground leading-relaxed">{tip}</p>
+              </div>
+            ))}
+          </div>
         </div>
+
       </div>
     </div>
   );

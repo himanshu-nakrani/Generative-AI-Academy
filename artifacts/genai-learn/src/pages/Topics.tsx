@@ -122,7 +122,7 @@ export default function Topics() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {catTopics.map(topic => (
                     <Link key={topic.slug} href={`/topic/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
-                      <div className="group h-full p-5 rounded-2xl border border-border bg-card hover:border-primary/40 card-glow transition-all duration-200 cursor-pointer">
+                      <div className="group h-full p-5 rounded-lg border border-border bg-card hover:border-primary/30 transition-all duration-200 cursor-pointer">
                         <div className="flex items-center justify-between mb-3">
                           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColors[topic.difficulty]}`}>
                             {topic.difficulty}
