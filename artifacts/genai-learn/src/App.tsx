@@ -14,6 +14,7 @@ import Glossary from "@/pages/Glossary";
 import Progress from "@/pages/Progress";
 import Map from "@/pages/Map";
 import Notes from "@/pages/Notes";
+import Quiz from "@/pages/Quiz";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ function Router() {
           <Route path="/progress"       component={Progress} />
           <Route path="/map"            component={Map} />
           <Route path="/notes"          component={Notes} />
+          <Route path="/quiz/:slug"     component={Quiz} />
           <Route                        component={NotFound} />
         </Switch>
       </main>

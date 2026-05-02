@@ -1,7 +1,8 @@
 import { Link } from "wouter";
-import { ArrowRight, Flame, CheckCircle2, Clock, BookOpen, Trophy, BarChart3 } from "lucide-react";
+import { ArrowRight, Flame, CheckCircle2, Clock, BookOpen, Trophy, BarChart3, Brain, Star } from "lucide-react";
 import { topics, learningPaths, categories, categoryColors, type Category } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
+import { useQuizScores } from "@/hooks/useQuizScores";
 
 const pathKeys = ["beginner", "intermediate", "advanced"] as const;
 const pathLabels: Record<string, string> = {
@@ -40,6 +41,7 @@ function ProgressRing({ value, total, size = 128 }: { value: number; total: numb
 
 export default function Progress() {
   const { completed, isComplete, recentlyRead, streak, bestStreak } = useApp();
+  const { scores, totalDone, avgScore } = useQuizScores();
   const completedCount = completed.size;
   const totalTopics    = topics.length;
   const pctOverall     = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
@@ -222,6 +224,64 @@ export default function Progress() {
                 </Link>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Quiz Scores */}
+        {totalDone > 0 && (
+          <div className="p-5 rounded-xl border border-border bg-card mb-8 fade-up-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-violet-500" />
+                <h2 className="font-semibold">Quiz Scores</h2>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span>{totalDone} taken</span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-3 h-3 text-amber-500" />
+                  {avgScore}% avg
+                </span>
+              </div>
+            </div>
+            <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
+              {topics
+                .filter(t => scores[t.slug])
+                .sort((a, b) => scores[b.slug].date - scores[a.slug].date)
+                .map(t => {
+                  const s   = scores[t.slug];
+                  const pct = Math.round((s.score / s.total) * 100);
+                  return (
+                    <Link key={t.slug} href={`/quiz/${t.slug}`}>
+                      <div className="group flex items-center gap-3 py-2 px-2 rounded-md hover:bg-muted transition-colors cursor-pointer">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors truncate block">
+                            {t.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-red-400"}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className={`text-xs tabular-nums font-medium w-10 text-right ${
+                            pct >= 80 ? "text-emerald-600 dark:text-emerald-400"
+                            : pct >= 60 ? "text-amber-600 dark:text-amber-400"
+                            : "text-red-600 dark:text-red-400"
+                          }`}>{s.score}/{s.total}</span>
+                          <ArrowRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+            </div>
+            {totalDone < topics.length && (
+              <p className="mt-3 text-xs text-muted-foreground text-center">
+                {topics.length - totalDone} quizzes remaining — <Link href="/topics"><span className="text-primary hover:underline cursor-pointer">browse topics</span></Link>
+              </p>
+            )}
           </div>
         )}
 

@@ -7,6 +7,8 @@ import {
   Play, Loader2, Terminal, Highlighter, SlidersHorizontal,
 } from "lucide-react";
 import { getTopicBySlug, topics, categoryColors, difficultyColors, type Reference } from "@/data/topics";
+import { quizzes } from "@/data/quizzes";
+import { useQuizScores } from "@/hooks/useQuizScores";
 import { useApp } from "@/context/AppContext";
 import { usePrefs, fontSizePx, lineHeightVal } from "@/context/PrefsContext";
 import { useHighlights, HIGHLIGHT_COLORS, type Highlight } from "@/hooks/useHighlights";
@@ -469,6 +471,9 @@ export default function TopicDetail() {
   const { isComplete, toggleComplete, recordVisit } = useApp();
   const { fontSize, lineHeight, focusMode, wideColumn } = usePrefs();
   const { topicHighlights, add: addHighlight } = useHighlights(slug);
+  const { getScore } = useQuizScores();
+  const quizScore   = slug ? getScore(slug) : null;
+  const hasQuiz     = slug ? (quizzes[slug]?.length ?? 0) > 0 : false;
 
   const [activeSection,  setActiveSection]  = useState(0);
   const [showShortcuts,  setShowShortcuts]  = useState(false);
@@ -740,6 +745,20 @@ export default function TopicDetail() {
                         ? <><CheckCircle2 className="w-3.5 h-3.5" />Completed</>
                         : <><Circle className="w-3.5 h-3.5" />Mark complete</>}
                     </button>
+
+                    {hasQuiz && (
+                      <Link href={`/quiz/${slug}`}>
+                        <button className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition-all ${
+                          quizScore
+                            ? "border-violet-400/40 bg-violet-50/50 dark:bg-violet-900/10 text-violet-700 dark:text-violet-400 hover:opacity-80"
+                            : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-muted"
+                        }`}>
+                          {quizScore
+                            ? <>✓ Quiz: {quizScore.score}/{quizScore.total} — Retake</>
+                            : <>📝 Take the Quiz</>}
+                        </button>
+                      </Link>
+                    )}
                   </div>
 
                   {/* Scrollspy TOC */}

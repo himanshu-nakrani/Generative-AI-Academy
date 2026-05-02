@@ -1,12 +1,96 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import {
   ArrowRight, BookOpen, Layers, Network, FlaskConical,
   Cpu, Microscope, ChevronRight, Flame, CheckCircle2, Clock,
+  Zap, CheckCircle, XCircle,
 } from "lucide-react";
 import { topics, categoryColors, categories, learningPaths, type Category } from "@/data/topics";
+import { getTopicBySlug } from "@/data/topics";
+import { getDailyQuestion } from "@/data/quizzes";
+import { loadDailyRecord, saveDailyRecord } from "@/hooks/useQuizScores";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useApp } from "@/context/AppContext";
+
+const OPTION_LABELS = ["A", "B", "C", "D"];
+
+function DailyChallengeWidget() {
+  const { question, dateKey } = useMemo(() => getDailyQuestion(), []);
+  const topic = getTopicBySlug(question.slug);
+
+  const existing = loadDailyRecord();
+  const alreadyAnswered = existing?.dateKey === dateKey;
+
+  const [selected, setSelected]  = useState<number | null>(alreadyAnswered ? existing!.selected : null);
+  const [revealed, setRevealed]  = useState(alreadyAnswered);
+
+  const submit = () => {
+    if (selected === null || revealed) return;
+    const correct = selected === question.answer;
+    saveDailyRecord({ dateKey, selected, correct });
+    setRevealed(true);
+  };
+
+  const isCorrect = revealed && selected === question.answer;
+
+  return (
+    <div className="p-5 rounded-xl border border-border bg-card">
+      <div className="flex items-center gap-2 mb-3">
+        <Zap className="w-4 h-4 text-amber-500" />
+        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Daily Challenge</span>
+        {revealed && (
+          <span className={`ml-auto text-xs font-medium ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+            {isCorrect ? "✓ Correct!" : "✗ Incorrect"}
+          </span>
+        )}
+      </div>
+
+      {topic && (
+        <p className="text-xs text-muted-foreground mb-2">
+          From: <Link href={`/topic/${question.slug}`}><span className="text-primary hover:underline cursor-pointer">{topic.title}</span></Link>
+        </p>
+      )}
+
+      <p className="text-sm font-medium leading-snug mb-3">{question.q}</p>
+
+      <div className="space-y-1.5 mb-3">
+        {question.options.map((opt, idx) => {
+          let cls = "w-full text-left flex items-center gap-2 px-3 py-2 rounded-md border text-xs transition-all";
+          if (revealed) {
+            if (idx === question.answer) cls += " border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200";
+            else if (idx === selected)   cls += " border-red-400 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200";
+            else                         cls += " border-border/50 text-muted-foreground/50";
+          } else if (idx === selected) {
+            cls += " border-primary bg-primary/6 cursor-pointer";
+          } else {
+            cls += " border-border bg-card hover:border-primary/40 cursor-pointer";
+          }
+          return (
+            <button key={idx} className={cls} onClick={() => !revealed && setSelected(idx)}>
+              <span className="w-5 h-5 flex-shrink-0 rounded-full border text-xs flex items-center justify-center font-bold border-current">
+                {OPTION_LABELS[idx]}
+              </span>
+              <span className="line-clamp-2 text-left">{opt}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {!revealed ? (
+        <button
+          onClick={submit}
+          disabled={selected === null}
+          className="w-full py-2 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed">
+          Submit Answer
+        </button>
+      ) : (
+        <div className="text-xs text-muted-foreground leading-relaxed bg-muted/40 rounded-md px-3 py-2">
+          {question.explanation}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const featuredSlugs = [
   "transformers", "large-language-models", "diffusion-models",
@@ -235,6 +319,22 @@ export default function Home() {
                 <span>{label}</span>
               </span>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Daily Challenge ──────────────────────────────────── */}
+      <section className="py-10 px-5 sm:px-8 border-b border-border bg-gradient-to-r from-amber-50/40 to-violet-50/40 dark:from-amber-950/10 dark:to-violet-950/10">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="flex flex-col justify-center">
+              <p className="text-xs font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2">Test your knowledge</p>
+              <h2 className="text-xl font-semibold mb-2">Daily Challenge</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                One question every day, drawn from across all 40 topics. Answer it, read the explanation, and link out to the full article. A new question resets at midnight.
+              </p>
+            </div>
+            <DailyChallengeWidget />
           </div>
         </div>
       </section>
