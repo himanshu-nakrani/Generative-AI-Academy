@@ -24,9 +24,9 @@ export function CleanEditorial() {
   const sans = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
   return (
-    <div style={{ fontFamily: sans, background: "#ffffff", minHeight: "100vh", color: "#111" }}>
+    <div style={{ fontFamily: sans, background: "#f4f4f4", minHeight: "100vh", color: "#111" }}>
       {/* Nav */}
-      <nav style={{ borderBottom: "1px solid #e8e8e8", padding: "0 56px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
+      <nav style={{ borderBottom: "1px solid #e8e8e8", padding: "0 56px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, position: "sticky", top: 0, background: "#f4f4f4", zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#111" }} />
           <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.04em", color: "#111" }}>
