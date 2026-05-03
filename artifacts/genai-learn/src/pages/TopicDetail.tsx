@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, Clock, BookOpen, ChevronRight,
   Copy, Check, ExternalLink, FileText, Globe, MessageSquare,
   Video, BookMarked, CheckCircle2, Circle, Keyboard, X, List,
-  Play, Loader2, Terminal, Highlighter, SlidersHorizontal,
+  Play, Loader2, Terminal, Highlighter, SlidersHorizontal, Bookmark,
 } from "lucide-react";
 import { getTopicBySlug, topics, categoryColors, difficultyColors, type Reference } from "@/data/topics";
 import { quizzes } from "@/data/quizzes";
@@ -15,6 +15,10 @@ import { useHighlights, HIGHLIGHT_COLORS, type Highlight } from "@/hooks/useHigh
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import { diagramRegistry } from "@/components/Diagrams";
 import { getPrerequisites } from "@/data/prerequisites";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import { useAchievements } from "@/context/AchievementsContext";
+import { recordTopicRead } from "@/hooks/useSpacedRepetition";
+import { VoiceReader } from "@/components/VoiceReader";
 
 /* ── Pyodide singleton ───────────────────────────────────── */
 const CDN = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
@@ -472,8 +476,11 @@ export default function TopicDetail() {
   const { fontSize, lineHeight, focusMode, wideColumn } = usePrefs();
   const { topicHighlights, add: addHighlight } = useHighlights(slug);
   const { getScore } = useQuizScores();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { recheckAchievements } = useAchievements();
   const quizScore   = slug ? getScore(slug) : null;
   const hasQuiz     = slug ? (quizzes[slug]?.length ?? 0) > 0 : false;
+  const bookmarked  = slug ? isBookmarked(slug) : false;
 
   const [activeSection,  setActiveSection]  = useState(0);
   const [showShortcuts,  setShowShortcuts]  = useState(false);
@@ -600,8 +607,19 @@ export default function TopicDetail() {
                     </span>
                   )}
 
-                  {/* Reading prefs button */}
+                  {/* Reading prefs + bookmark */}
                   <div className="relative ml-auto flex items-center gap-2">
+                    {slug && (
+                      <button
+                        onClick={() => { toggleBookmark(slug); recheckAchievements(); }}
+                        title={bookmarked ? "Remove bookmark" : "Save bookmark"}
+                        className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-md border transition-colors ${
+                          bookmarked ? "border-primary/40 bg-primary/8 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }`}>
+                        <Bookmark className={`w-3 h-3 ${bookmarked ? "fill-current" : ""}`} />
+                        {bookmarked ? "Saved" : "Save"}
+                      </button>
+                    )}
                     <button onClick={() => setShowPrefs(p => !p)}
                       className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-md border transition-colors ${
                         showPrefs ? "border-primary bg-primary/8 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -676,7 +694,11 @@ export default function TopicDetail() {
 
               {/* Mark as Complete */}
               <div className="mt-10 pt-8 border-t border-border flex items-center justify-between gap-4">
-                <button onClick={() => toggleComplete(slug)}
+                <button onClick={() => {
+                  toggleComplete(slug);
+                  if (!complete) recordTopicRead(slug);
+                  recheckAchievements();
+                }}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                     complete
                       ? "border-emerald-500/40 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/12"
@@ -759,7 +781,23 @@ export default function TopicDetail() {
                         </button>
                       </Link>
                     )}
+
+                    {slug && (
+                      <button
+                        onClick={() => { toggleBookmark(slug); recheckAchievements(); }}
+                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition-all ${
+                          bookmarked
+                            ? "border-primary/30 bg-primary/6 text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-muted"
+                        }`}>
+                        <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? "fill-current" : ""}`} />
+                        {bookmarked ? "Bookmarked" : "Bookmark"}
+                      </button>
+                    )}
                   </div>
+
+                  {/* Voice Reader */}
+                  <VoiceReader title={topic.title} sections={topic.sections} />
 
                   {/* Scrollspy TOC */}
                   <div className="p-4 rounded-md border border-border bg-card">

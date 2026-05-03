@@ -2,11 +2,12 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import {
   Menu, X, Flame, BarChart3, Network, Highlighter, Search,
-  LogIn, LogOut, User, ChevronDown,
+  LogIn, LogOut, User, ChevronDown, Bookmark, Trophy,
 } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
+import { useAchievements } from "@/context/AchievementsContext";
 
 const navLinks = [
   { href: "/topics",         label: "Topics" },
@@ -60,6 +61,18 @@ function UserMenu() {
                   My Progress
                 </div>
               </Link>
+              <Link href="/achievements" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <Trophy className="w-4 h-4 text-muted-foreground" />
+                  Achievements
+                </div>
+              </Link>
+              <Link href="/bookmarks" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <Bookmark className="w-4 h-4 text-muted-foreground" />
+                  Bookmarks
+                </div>
+              </Link>
               <button
                 onClick={() => {
                   setOpen(false);
@@ -82,6 +95,7 @@ export default function Navbar() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { completedCount, streak } = useApp();
+  const { earnedCount, newlyEarned } = useAchievements();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
@@ -149,6 +163,28 @@ export default function Navbar() {
                 </span>
               </Link>
             )}
+
+            {/* Achievements badge */}
+            <Link href="/achievements" className="relative">
+              <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-colors ${
+                location === "/achievements" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80"
+              }`}>
+                <Trophy className="w-3 h-3" />
+                {earnedCount}
+              </span>
+              {newlyEarned.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
+              )}
+            </Link>
+
+            {/* Bookmarks */}
+            <Link href="/bookmarks"
+              className={`p-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
+                location === "/bookmarks" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}>
+              <Bookmark className="w-3.5 h-3.5" />
+            </Link>
+
             {/* Auth */}
             <Show when="signed-in">
               <UserMenu />
@@ -205,6 +241,19 @@ export default function Navbar() {
           <Link href="/search" onClick={() => setMobileOpen(false)}>
             <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
               <Search className="w-4 h-4" />Search
+            </div>
+          </Link>
+          <Link href="/bookmarks" onClick={() => setMobileOpen(false)}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <Bookmark className="w-4 h-4" />Bookmarks
+            </div>
+          </Link>
+          <Link href="/achievements" onClick={() => setMobileOpen(false)}>
+            <div className="relative flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <Trophy className="w-4 h-4" />Achievements
+              {earnedCount > 0 && (
+                <span className="ml-auto text-xs text-primary font-medium">{earnedCount}</span>
+              )}
             </div>
           </Link>
           {completedCount > 0 && (

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Filter, Clock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { Search, Filter, Clock, ArrowRight, CheckCircle2, Sparkles, Bookmark, Lock } from "lucide-react";
 import Fuse from "fuse.js";
 import {
   topics,
@@ -12,6 +12,8 @@ import {
   type Difficulty,
 } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import { prerequisites } from "@/data/prerequisites";
 
 const fuse = new Fuse(topics, {
   keys: [
@@ -30,6 +32,7 @@ export default function Topics() {
   const [selectedCategory, setSelectedCategory] = useState<Category | "All">("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "All">("All");
   const { isComplete, completed } = useApp();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
 
   // Parse query params on mount
   useEffect(() => {
@@ -184,34 +187,56 @@ export default function Topics() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {catTopics.map(topic => {
                     const done = isComplete(topic.slug);
+                    const bookmarked = isBookmarked(topic.slug);
+                    const prereqs = prerequisites[topic.slug] ?? [];
+                    const locked = prereqs.length > 0 && !prereqs.every(p => completed.has(p));
                     return (
-                      <Link key={topic.slug} href={`/topic/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
-                        <div className={`group h-full p-5 rounded-lg border bg-card hover:border-primary/30 transition-all duration-200 cursor-pointer ${
-                          done ? "border-emerald-500/25 topic-completed" : "border-border"
-                        }`}>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColors[topic.difficulty]}`}>
-                              {topic.difficulty}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              {done && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {topic.readTime} min
+                      <div key={topic.slug} className="relative">
+                        <Link href={`/topic/${topic.slug}`} data-testid={`card-topic-${topic.slug}`}>
+                          <div className={`group h-full p-5 rounded-lg border bg-card hover:border-primary/30 transition-all duration-200 cursor-pointer ${
+                            done ? "border-emerald-500/25 topic-completed" : locked ? "border-border/50 opacity-70" : "border-border"
+                          }`}>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyColors[topic.difficulty]}`}>
+                                {topic.difficulty}
                               </span>
+                              <div className="flex items-center gap-2">
+                                {locked && <span title="Complete prerequisites first"><Lock className="w-3.5 h-3.5 text-muted-foreground/40" /></span>}
+                                {done && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {topic.readTime} min
+                                </span>
+                              </div>
                             </div>
+                            <h3 className={`font-semibold mb-2 group-hover:text-primary transition-colors ${done ? "text-muted-foreground" : ""}`}>
+                              {topic.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{topic.description}</p>
+                            {locked && prereqs.length > 0 && (
+                              <p className="text-xs text-muted-foreground/50 mt-2">
+                                Requires: {prereqs.slice(0, 2).map(p => topics.find(t => t.slug === p)?.title ?? p).join(", ")}
+                                {prereqs.length > 2 ? ` +${prereqs.length - 2} more` : ""}
+                              </p>
+                            )}
+                            {!done && !locked && (
+                              <div className="flex items-center gap-1 text-primary text-xs font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Read <ArrowRight className="w-3 h-3" />
+                              </div>
+                            )}
                           </div>
-                          <h3 className={`font-semibold mb-2 group-hover:text-primary transition-colors ${done ? "text-muted-foreground" : ""}`}>
-                            {topic.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{topic.description}</p>
-                          {!done && (
-                            <div className="flex items-center gap-1 text-primary text-xs font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                              Read <ArrowRight className="w-3 h-3" />
-                            </div>
-                          )}
-                        </div>
-                      </Link>
+                        </Link>
+                        {/* Bookmark toggle button (outside Link to avoid navigation) */}
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleBookmark(topic.slug); }}
+                          className={`absolute top-3 right-3 p-1 rounded transition-all ${
+                            bookmarked ? "text-primary opacity-100" : "text-muted-foreground/30 opacity-0 group-hover:opacity-100 hover:text-primary"
+                          }`}
+                          title={bookmarked ? "Remove bookmark" : "Bookmark"}
+                        >
+                          <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? "fill-current" : ""}`} />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>

@@ -1,8 +1,30 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Flame, CheckCircle2, Clock, BookOpen, Trophy, BarChart3, Brain, Star } from "lucide-react";
+import { ArrowRight, Flame, CheckCircle2, Clock, BookOpen, Trophy, BarChart3, Brain, Star, Share2, Download, Lock } from "lucide-react";
+import {
+  BookOpen as BookOpenIcon, Layers, TrendingUp, Zap, Cpu, Wrench,
+  FlaskConical, Microscope, GraduationCap, Gem, HelpCircle,
+  CheckCircle2 as CheckCircle2Icon, Award, Crown, Bookmark, Archive, Highlighter, PenLine,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { topics, learningPaths, categories, categoryColors, type Category } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 import { useQuizScores } from "@/hooks/useQuizScores";
+import { useAchievements, ACHIEVEMENT_DEFS, type AchievementState } from "@/context/AchievementsContext";
+import { ShareModal } from "@/components/ShareModal";
+
+const ACHIEVEMENT_ICON_MAP: Record<string, LucideIcon> = {
+  BookOpen: BookOpenIcon, Layers, TrendingUp, Zap, Trophy, Cpu, Brain, Wrench,
+  FlaskConical, Microscope, GraduationCap, Flame, Gem, HelpCircle,
+  CheckCircle2: CheckCircle2Icon, Award, Crown, Bookmark, Archive, Highlighter, PenLine,
+};
+
+const RARITY_BADGE = {
+  common:    "bg-muted text-muted-foreground border-border",
+  uncommon:  "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+  rare:      "bg-violet-500/10 text-violet-400 border-violet-500/30",
+  legendary: "bg-amber-400/10 text-amber-400 border-amber-400/40",
+};
 
 const pathKeys = ["beginner", "intermediate", "advanced"] as const;
 const pathLabels: Record<string, string> = {
@@ -39,15 +61,60 @@ function ProgressRing({ value, total, size = 128 }: { value: number; total: numb
   );
 }
 
+function AchievementMiniCard({ achievement }: { achievement: AchievementState }) {
+  const Icon = ACHIEVEMENT_ICON_MAP[achievement.icon] ?? Trophy;
+  const badge = RARITY_BADGE[achievement.rarity];
+  return (
+    <div className={`relative flex items-center gap-3 p-3 rounded-lg border transition-all ${
+      achievement.earned ? "border-border bg-card" : "border-border/40 bg-card/20 opacity-45"
+    }`}>
+      <div className={`w-8 h-8 rounded-md border flex items-center justify-center flex-shrink-0 ${
+        achievement.earned ? "border-border bg-muted" : "border-border/40 bg-muted/30"
+      }`}>
+        {achievement.earned
+          ? <Icon className="w-4 h-4 text-primary" />
+          : <Lock className="w-3.5 h-3.5 text-muted-foreground/30" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold truncate">{achievement.title}</p>
+        <p className="text-xs text-muted-foreground truncate">{achievement.description}</p>
+      </div>
+      <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full border flex-shrink-0 ${badge}`}>
+        {achievement.rarity[0].toUpperCase() + achievement.rarity.slice(1)}
+      </span>
+    </div>
+  );
+}
+
 export default function Progress() {
   const { completed, isComplete, recentlyRead, streak, bestStreak } = useApp();
   const { scores, totalDone, avgScore } = useQuizScores();
+  const { achievements, earnedCount, totalCount } = useAchievements();
+  const [showShare, setShowShare] = useState(false);
   const completedCount = completed.size;
   const totalTopics    = topics.length;
   const pctOverall     = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
 
   const timeRead      = topics.filter(t => completed.has(t.slug)).reduce((s, t) => s + t.readTime, 0);
   const timeRemaining = topics.filter(t => !completed.has(t.slug)).reduce((s, t) => s + t.readTime, 0);
+
+  const handleExport = () => {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      completedTopics: [...completed],
+      streak,
+      bestStreak,
+      quizScores: scores,
+      achievements: achievements.filter(a => a.earned).map(a => ({ id: a.id, title: a.title, earnedAt: a.earnedAt })),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `genai-learn-progress-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const recentTopics = recentlyRead
     .map(slug => topics.find(t => t.slug === slug))
@@ -81,11 +148,31 @@ export default function Progress() {
     <div className="min-h-screen py-12 px-5 sm:px-8">
       <div className="max-w-3xl mx-auto">
 
+        {showShare && <ShareModal onClose={() => setShowShare(false)} />}
+
         {/* Header */}
         <div className="mb-10 fade-up">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Dashboard</p>
-          <h1 className="text-4xl font-bold tracking-tight mb-2">My Progress</h1>
-          <p className="text-muted-foreground text-sm">Your learning journey across 40 topics in generative AI.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight mb-2">My Progress</h1>
+              <p className="text-muted-foreground text-sm">Your learning journey across 40 topics in generative AI.</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0 mt-1">
+              <button
+                onClick={() => setShowShare(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-card text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <Share2 className="w-3.5 h-3.5" />Share
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-card text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />Export
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Top stats */}
@@ -284,6 +371,34 @@ export default function Progress() {
             )}
           </div>
         )}
+
+        {/* Achievements section */}
+        <div className="p-5 rounded-xl border border-border bg-card mb-8 fade-up">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-amber-500" />
+              <h2 className="font-semibold">Achievements</h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">{earnedCount}/{totalCount} earned</span>
+              <Link href="/achievements">
+                <span className="text-xs text-primary hover:underline cursor-pointer">View all →</span>
+              </Link>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+            {[...achievements]
+              .sort((a, b) => (b.earned ? 1 : 0) - (a.earned ? 1 : 0))
+              .slice(0, 8)
+              .map(a => <AchievementMiniCard key={a.id} achievement={a} />)}
+          </div>
+          {earnedCount < totalCount && (
+            <p className="mt-3 text-xs text-muted-foreground text-center">
+              {totalCount - earnedCount} more achievements to unlock —{" "}
+              <Link href="/achievements"><span className="text-primary hover:underline cursor-pointer">see all badges</span></Link>
+            </p>
+          )}
+        </div>
 
         {/* Bottom nav */}
         <div className="flex gap-3">

@@ -20,6 +20,10 @@ import Notes from "@/pages/Notes";
 import Quiz from "@/pages/Quiz";
 import Search from "@/pages/Search";
 import NotFound from "@/pages/not-found";
+import Achievements from "@/pages/Achievements";
+import Bookmarks from "@/pages/Bookmarks";
+import { AchievementsProvider } from "@/context/AchievementsContext";
+import { AchievementToastManager } from "@/components/AchievementToast";
 
 const queryClient = new QueryClient();
 
@@ -156,6 +160,8 @@ function Router() {
           <Route path="/notes"          component={Notes} />
           <Route path="/quiz/:slug"     component={Quiz} />
           <Route path="/search"         component={Search} />
+          <Route path="/achievements"   component={Achievements} />
+          <Route path="/bookmarks"      component={Bookmarks} />
           <Route path="/sign-in/*?"     component={SignInPage} />
           <Route path="/sign-up/*?"     component={SignUpPage} />
           <Route                        component={NotFound} />
@@ -199,9 +205,12 @@ function ClerkProviderWithRoutes() {
         <ClerkQueryClientCacheInvalidator />
         <TooltipProvider>
           <AppProvider>
-            <PrefsProvider>
-              <Router />
-            </PrefsProvider>
+            <AchievementsProvider>
+              <PrefsProvider>
+                <AchievementToastManager />
+                <Router />
+              </PrefsProvider>
+            </AchievementsProvider>
           </AppProvider>
           <Toaster />
         </TooltipProvider>

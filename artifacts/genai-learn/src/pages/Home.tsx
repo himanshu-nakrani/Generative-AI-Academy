@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import {
   ArrowRight, BookOpen, Layers, Network, FlaskConical,
   Cpu, Microscope, ChevronRight, Flame, CheckCircle2, Clock,
-  Zap, CheckCircle, XCircle,
+  Zap, CheckCircle, XCircle, RotateCcw,
 } from "lucide-react";
 import { topics, categoryColors, categories, learningPaths, type Category } from "@/data/topics";
 import { getTopicBySlug } from "@/data/topics";
@@ -11,6 +11,7 @@ import { getDailyQuestion } from "@/data/quizzes";
 import { loadDailyRecord, saveDailyRecord } from "@/hooks/useQuizScores";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useApp } from "@/context/AppContext";
+import { getDueReviews } from "@/hooks/useSpacedRepetition";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -147,6 +148,13 @@ export default function Home() {
   const { completed, isComplete, recentlyRead, streak } = useApp();
   const completedCount = completed.size;
 
+  const dueReviews = useMemo(() => {
+    if (completedCount === 0) return [];
+    return getDueReviews([...completed])
+      .map(slug => topics.find(t => t.slug === slug))
+      .filter(Boolean) as typeof topics;
+  }, [completed, completedCount]);
+
   const featuredTopics = featuredSlugs
     .map(slug => topics.find(t => t.slug === slug))
     .filter(Boolean) as typeof topics;
@@ -268,6 +276,26 @@ export default function Home() {
                     </span>
                   </Link>
                 ))}
+              </div>
+            )}
+
+            {/* Due for review */}
+            {dueReviews.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <RotateCcw className="w-3.5 h-3.5 text-violet-500" />
+                  <span className="text-xs font-semibold text-muted-foreground">Due for Review</span>
+                  <span className="text-xs text-muted-foreground/60">{dueReviews.length} topic{dueReviews.length !== 1 ? "s" : ""}</span>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  {dueReviews.slice(0, 5).map(t => (
+                    <Link key={t.slug} href={`/topic/${t.slug}`}>
+                      <span className="inline-flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors flex-shrink-0 px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15">
+                        <RotateCcw className="w-2.5 h-2.5" />{t.title}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </div>
