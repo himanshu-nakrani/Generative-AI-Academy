@@ -6,7 +6,7 @@ import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppProvider } from "@/context/AppContext";
-import { PrefsProvider, usePrefs } from "@/context/PrefsContext";
+import { PrefsProvider } from "@/context/PrefsContext";
 import Navbar from "@/components/Navbar";
 import Home from "@/pages/Home";
 import Topics from "@/pages/Topics";
@@ -122,7 +122,7 @@ function AuthPageWrapper({ children, subtitle }: { children: React.ReactNode; su
 }
 
 function SignInPage() {
-  const { dark } = usePrefs();
+  const isDark = document.documentElement.classList.contains("dark");
   return (
     <AuthPageWrapper subtitle="Sign in to sync your progress across devices">
       <SignIn
@@ -130,7 +130,7 @@ function SignInPage() {
         path={`${basePath}/sign-in`}
         signUpUrl={`${basePath}/sign-up`}
         fallbackRedirectUrl={`${basePath}/`}
-        appearance={buildClerkAppearance(dark)}
+        appearance={buildClerkAppearance(isDark)}
       />
       <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
         <p className="text-xs text-muted-foreground text-center">
@@ -142,7 +142,7 @@ function SignInPage() {
 }
 
 function SignUpPage() {
-  const { dark } = usePrefs();
+  const isDark = document.documentElement.classList.contains("dark");
   return (
     <AuthPageWrapper subtitle="Create an account to save your progress">
       <SignUp
@@ -150,7 +150,7 @@ function SignUpPage() {
         path={`${basePath}/sign-up`}
         signInUrl={`${basePath}/sign-in`}
         fallbackRedirectUrl={`${basePath}/`}
-        appearance={buildClerkAppearance(dark)}
+        appearance={buildClerkAppearance(isDark)}
       />
       <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
         <p className="text-xs text-muted-foreground text-center">
