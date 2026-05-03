@@ -1,6 +1,10 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
-import { Menu, X, Sun, Moon, Flame, BarChart3, Network, Highlighter, Search } from "lucide-react";
+import {
+  Menu, X, Sun, Moon, Flame, BarChart3, Network, Highlighter, Search,
+  LogIn, LogOut, User, ChevronDown,
+} from "lucide-react";
+import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 
@@ -10,6 +14,69 @@ const navLinks = [
   { href: "/glossary",       label: "Glossary" },
   { href: "/resources",      label: "Resources" },
 ];
+
+function UserMenu() {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const [open, setOpen] = useState(false);
+  const [, navigate] = useLocation();
+
+  if (!user) return null;
+
+  const name = user.firstName || user.username || user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
+  const initials = (user.firstName?.[0] ?? "") + (user.lastName?.[0] ?? name[1] ?? "");
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted transition-colors text-sm"
+      >
+        {user.imageUrl ? (
+          <img src={user.imageUrl} alt={name} className="w-6 h-6 rounded-full object-cover" />
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
+            {initials.toUpperCase() || <User className="w-3.5 h-3.5" />}
+          </div>
+        )}
+        <span className="hidden sm:inline text-foreground font-medium max-w-[120px] truncate">{name}</span>
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1.5 w-52 bg-card border border-border rounded-lg shadow-md z-50 overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-border">
+              <p className="text-sm font-medium text-foreground truncate">{name}</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {user.primaryEmailAddress?.emailAddress}
+              </p>
+            </div>
+            <div className="p-1">
+              <Link href="/progress" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                  My Progress
+                </div>
+              </Link>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  signOut(() => navigate("/"));
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors"
+              >
+                <LogOut className="w-4 h-4 text-muted-foreground" />
+                Sign out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -46,7 +113,6 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            {/* Map & Notes */}
             <Link href="/map"
               className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
                 location === "/map" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -86,10 +152,21 @@ export default function Navbar() {
               className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <Link href="/topics"
-              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
-              Start Learning
-            </Link>
+
+            {/* Auth */}
+            <Show when="signed-in">
+              <UserMenu />
+            </Show>
+            <Show when="signed-out">
+              <Link href="/sign-in"
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors text-foreground font-medium">
+                <LogIn className="w-3.5 h-3.5" />Sign in
+              </Link>
+              <Link href="/topics"
+                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+                Start Learning
+              </Link>
+            </Show>
           </div>
 
           {/* Mobile right */}
@@ -133,6 +210,11 @@ export default function Navbar() {
               <Highlighter className="w-4 h-4" />My Notes
             </div>
           </Link>
+          <Link href="/search" onClick={() => setMobileOpen(false)}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <Search className="w-4 h-4" />Search
+            </div>
+          </Link>
           {completedCount > 0 && (
             <Link href="/progress" onClick={() => setMobileOpen(false)}>
               <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
@@ -140,8 +222,38 @@ export default function Navbar() {
               </div>
             </Link>
           )}
+          <div className="pt-1 border-t border-border mt-1">
+            <Show when="signed-out">
+              <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                  <LogIn className="w-4 h-4" />Sign in
+                </div>
+              </Link>
+            </Show>
+            <Show when="signed-in">
+              <MobileSignOut onClose={() => setMobileOpen(false)} />
+            </Show>
+          </div>
         </div>
       )}
     </nav>
+  );
+}
+
+function MobileSignOut({ onClose }: { onClose: () => void }) {
+  const { signOut } = useClerk();
+  const { user } = useUser();
+  const [, navigate] = useLocation();
+
+  if (!user) return null;
+  const name = user.firstName || user.username || user.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
+
+  return (
+    <button
+      onClick={() => { onClose(); signOut(() => navigate("/")); }}
+      className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+    >
+      <LogOut className="w-4 h-4" />Sign out ({name})
+    </button>
   );
 }
