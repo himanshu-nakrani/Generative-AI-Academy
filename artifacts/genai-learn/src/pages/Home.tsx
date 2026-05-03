@@ -285,10 +285,10 @@ export default function Home() {
   const isReturning = completedCount > 0 || recentlyRead.length > 0;
 
   return (
-    <div className="min-h-screen">
+    <main className="min-h-screen" role="main">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden" aria-labelledby="hero-heading">
         <div className="max-w-6xl mx-auto px-5 lg:px-8 pt-20 pb-16 lg:pt-28 lg:pb-24">
           <div className="max-w-3xl">
             {/* Badge */}
@@ -298,7 +298,7 @@ export default function Home() {
             </div>
 
             {/* Title */}
-            <h1 className="fade-up-1 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+            <h1 id="hero-heading" className="fade-up-1 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6 text-balance">
               <span className="text-foreground">Learn Generative AI</span>
               <br />
               <span className="serif-display text-accent">from first principles</span>
@@ -608,6 +608,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

@@ -341,7 +341,7 @@ function SelectionToolbar({ x, y, text, onHighlight, onDismiss }: {
   );
 }
 
-/* ── ReadingPrefsPanel ───��───────────────────────────────── */
+/* ── ReadingPrefsPanel ───��───────────────���───────────────── */
 function ReadingPrefsPanel({ onClose }: { onClose: () => void }) {
   const { fontSize, lineHeight, focusMode, wideColumn, setFontSize, setLineHeight, toggleFocusMode, toggleWideCol } = usePrefs();
   const ref = useRef<HTMLDivElement>(null);
@@ -811,12 +811,14 @@ export default function TopicDetail() {
         <div className={`${maxW} mx-auto`}>
 
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-8 fade-up">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/topics" className="hover:text-foreground transition-colors">Topics</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground">{topic.title}</span>
+          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8 fade-up" aria-label="Breadcrumb">
+            <ol className="flex items-center gap-1.5">
+              <li><Link href="/" className="hover:text-foreground transition-colors">Home</Link></li>
+              <li aria-hidden="true"><ChevronRight className="w-3 h-3" /></li>
+              <li><Link href="/topics" className="hover:text-foreground transition-colors">Topics</Link></li>
+              <li aria-hidden="true"><ChevronRight className="w-3 h-3" /></li>
+              <li><span className="text-foreground" aria-current="page">{topic.title}</span></li>
+            </ol>
           </nav>
 
           <div className="flex gap-10 xl:gap-14">

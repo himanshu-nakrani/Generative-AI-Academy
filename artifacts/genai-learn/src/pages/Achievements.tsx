@@ -49,7 +49,7 @@ function AchievementCard({ achievement }: { achievement: AchievementState }) {
       {/* Icon */}
       <div className={`w-10 h-10 rounded-lg border mb-3 flex items-center justify-center ${
         earned ? `${rarity.border} bg-background/50` : "border-border/40 bg-muted/20"
-      }`}>
+      }`} aria-hidden="true">
         {earned
           ? <Icon className={`w-5 h-5 ${rarity.icon}`} />
           : <Lock className="w-4 h-4 text-muted-foreground/30" />}
@@ -105,16 +105,23 @@ export default function Achievements() {
         {/* Overall bar */}
         <div className="p-5 rounded-xl border border-border bg-card mb-10 fade-up-2">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold">Overall Progress</p>
+            <p className="text-sm font-semibold" id="achievements-progress-label">Overall Progress</p>
             <span className="text-sm font-bold tabular-nums text-primary">{earnedCount}/{totalCount}</span>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="h-2 bg-muted rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-labelledby="achievements-progress-label"
+          >
             <div
               className="h-full bg-primary rounded-full transition-all duration-700"
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">{pct}% of all achievements unlocked</p>
+          <p className="text-sm text-muted-foreground mt-2">{pct}% of all achievements unlocked</p>
         </div>
 
         {/* Achievements by category */}

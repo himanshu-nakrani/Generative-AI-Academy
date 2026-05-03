@@ -18,38 +18,47 @@ const optionGhost = `${optionBase} border-border/50 bg-card/60 text-muted-foregr
 /* ── Mode Select Screen ──────────────────────────────────── */
 function ModeSelect({ onSelect }: { onSelect: (mode: "normal" | "timed") => void }) {
   return (
-    <div className="min-h-screen py-20 px-5 flex items-center justify-center">
+    <main className="min-h-screen py-20 px-5 flex items-center justify-center" role="main">
       <div className="w-full max-w-sm text-center fade-up">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Choose Mode</p>
-        <h1 className="text-2xl font-bold mb-2">How do you want to play?</h1>
+        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-2" aria-hidden="true">Choose Mode</p>
+        <h1 className="text-2xl font-bold mb-2 text-balance">How do you want to play?</h1>
         <p className="text-sm text-muted-foreground mb-8">Normal mode lets you take your time. Timed mode adds a 30-second countdown per question.</p>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => onSelect("normal")}
-            className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-border bg-card hover:border-primary/40 hover:bg-primary/4 transition-all group"
-          >
-            <BookOpen className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
-            <div>
-              <p className="font-semibold text-foreground">Normal</p>
-              <p className="text-xs text-muted-foreground mt-0.5">No timer · Learn at your pace</p>
-            </div>
-          </button>
-          <button
-            onClick={() => onSelect("timed")}
-            className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-amber-400/40 bg-amber-50/30 dark:bg-amber-900/10 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/20 transition-all group"
-          >
-            <div className="relative">
-              <Timer className="w-7 h-7 text-amber-500" />
-              <Zap className="w-3 h-3 text-amber-500 absolute -top-1 -right-1" />
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">Timed</p>
-              <p className="text-xs text-muted-foreground mt-0.5">30s per question</p>
-            </div>
-          </button>
-        </div>
+        <fieldset>
+          <legend className="sr-only">Select quiz mode</legend>
+          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Quiz mode selection">
+            <button
+              onClick={() => onSelect("normal")}
+              className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-border bg-card hover:border-primary/40 hover:bg-primary/4 transition-all group"
+              aria-label="Normal mode - No timer, learn at your pace"
+              role="radio"
+              aria-checked="false"
+            >
+              <BookOpen className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" aria-hidden="true" />
+              <div>
+                <p className="font-semibold text-foreground">Normal</p>
+                <p className="text-sm text-muted-foreground mt-0.5">No timer, learn at your pace</p>
+              </div>
+            </button>
+            <button
+              onClick={() => onSelect("timed")}
+              className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-amber-400/40 bg-amber-50/30 dark:bg-amber-900/10 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/20 transition-all group"
+              aria-label="Timed mode - 30 seconds per question"
+              role="radio"
+              aria-checked="false"
+            >
+              <div className="relative" aria-hidden="true">
+                <Timer className="w-7 h-7 text-amber-500" />
+                <Zap className="w-3 h-3 text-amber-500 absolute -top-1 -right-1" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Timed</p>
+                <p className="text-sm text-muted-foreground mt-0.5">30s per question</p>
+              </div>
+            </button>
+          </div>
+        </fieldset>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -58,22 +67,30 @@ function TimerBar({ timeLeft, total = 30 }: { timeLeft: number; total?: number }
   const pct    = (timeLeft / total) * 100;
   const urgent = timeLeft <= 8;
   return (
-    <div className="mb-5 fade-up">
+    <div className="mb-5 fade-up" role="timer" aria-live="polite" aria-atomic="true">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5">
-          <Timer className={`w-3.5 h-3.5 ${urgent ? "text-red-500 animate-pulse" : "text-amber-500"}`} />
-          <span className={`text-xs font-mono font-semibold tabular-nums ${urgent ? "text-red-500" : "text-amber-500"}`}>
+          <Timer className={`w-3.5 h-3.5 ${urgent ? "text-red-500 animate-pulse" : "text-amber-500"}`} aria-hidden="true" />
+          <span className={`text-sm font-mono font-semibold tabular-nums ${urgent ? "text-red-500" : "text-amber-500"}`}>
             {timeLeft}s
           </span>
         </div>
-        <span className="text-xs text-muted-foreground">Time remaining</span>
+        <span className="text-sm text-muted-foreground">Time remaining</span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div 
+        className="h-2 bg-muted rounded-full overflow-hidden"
+        role="progressbar"
+        aria-valuenow={timeLeft}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-label={`${timeLeft} seconds remaining`}
+      >
         <div
           className={`h-full rounded-full transition-all duration-1000 ease-linear ${urgent ? "bg-red-500" : "bg-amber-500"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
+      {urgent && <span className="sr-only">Warning: Less than 10 seconds remaining</span>}
     </div>
   );
 }

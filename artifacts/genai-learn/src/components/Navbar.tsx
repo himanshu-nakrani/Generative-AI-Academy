@@ -244,53 +244,68 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background px-5 py-4">
-          <div className="space-y-1">
+        <nav 
+          className="md:hidden border-t border-border bg-background px-5 py-4"
+          aria-label="Mobile navigation"
+          id="mobile-nav-menu"
+        >
+          <ul className="space-y-1" role="list">
             {navLinks.map(({ href, label }) => (
-              <Link key={href} href={href}
-                className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  location === href 
-                    ? "text-foreground bg-muted" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-                onClick={() => setMobileOpen(false)}>
-                {label}
-              </Link>
+              <li key={href}>
+                <Link href={href}
+                  className={`flex items-center px-4 py-3.5 rounded-xl text-sm font-medium transition-colors min-h-[48px] ${
+                    location === href 
+                      ? "text-foreground bg-muted" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                  aria-current={location === href ? "page" : undefined}
+                  onClick={() => setMobileOpen(false)}>
+                  {label}
+                </Link>
+              </li>
             ))}
-            <Link href="/search" onClick={() => setMobileOpen(false)}>
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                <Search className="w-4 h-4" />Search
-              </div>
-            </Link>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-border space-y-1">
-            <Link href="/bookmarks" onClick={() => setMobileOpen(false)}>
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                <Bookmark className="w-4 h-4" />Bookmarks
-              </div>
-            </Link>
-            <Link href="/achievements" onClick={() => setMobileOpen(false)}>
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                <span className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4" />Achievements
-                </span>
-                {earnedCount > 0 && (
-                  <span className="text-xs text-accent font-medium">{earnedCount}</span>
-                )}
-              </div>
-            </Link>
-            {completedCount > 0 && (
-              <Link href="/progress" onClick={() => setMobileOpen(false)}>
-                <div className="flex items-center justify-between px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                  <span className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />Progress
-                  </span>
-                  <span className="text-xs text-muted-foreground">{completedCount}/{topics.length}</span>
+            <li>
+              <Link href="/search" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center gap-2 px-4 py-3.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors min-h-[48px]">
+                  <Search className="w-4 h-4" aria-hidden="true" />Search
                 </div>
               </Link>
+            </li>
+          </ul>
+          
+          <ul className="mt-4 pt-4 border-t border-border space-y-1" role="list">
+            <li>
+              <Link href="/bookmarks" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center gap-2 px-4 py-3.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors min-h-[48px]">
+                  <Bookmark className="w-4 h-4" aria-hidden="true" />Bookmarks
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link href="/achievements" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center justify-between px-4 py-3.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors min-h-[48px]">
+                  <span className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4" aria-hidden="true" />Achievements
+                  </span>
+                  {earnedCount > 0 && (
+                    <span className="text-sm text-accent font-medium" aria-label={`${earnedCount} achievements earned`}>{earnedCount}</span>
+                  )}
+                </div>
+              </Link>
+            </li>
+            {completedCount > 0 && (
+              <li>
+                <Link href="/progress" onClick={() => setMobileOpen(false)}>
+                  <div className="flex items-center justify-between px-4 py-3.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors min-h-[48px]">
+                    <span className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" aria-hidden="true" />Progress
+                    </span>
+                    <span className="text-sm text-muted-foreground" aria-label={`${completedCount} of ${topics.length} topics completed`}>{completedCount}/{topics.length}</span>
+                  </div>
+                </Link>
+              </li>
             )}
-          </div>
+          </ul>
 
           <div className="mt-4 pt-4 border-t border-border">
             <Show when="signed-out">
