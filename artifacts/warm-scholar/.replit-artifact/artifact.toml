@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/warm-scholar/"
+title = "Warm Scholar"
+version = "1.0.0"
+id = "artifacts/warm-scholar"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/warm-scholar/" ]
+localPort = 20326
+
+[services.development]
+run = "pnpm --filter @workspace/warm-scholar run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/warm-scholar", "run", "build" ]
+publicDir = "artifacts/warm-scholar/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20326"
+BASE_PATH = "/warm-scholar/"

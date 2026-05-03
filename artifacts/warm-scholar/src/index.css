@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap');
+@layer theme, base, components, utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background:          hsl(var(--background));
+  --color-foreground:          hsl(var(--foreground));
+  --color-border:              hsl(var(--border));
+  --color-input:               hsl(var(--input));
+  --color-ring:                hsl(var(--ring));
+  --color-card:                hsl(var(--card));
+  --color-card-foreground:     hsl(var(--card-foreground));
+  --color-card-border:         hsl(var(--card-border));
+  --color-popover:             hsl(var(--popover));
+  --color-popover-foreground:  hsl(var(--popover-foreground));
+  --color-popover-border:      hsl(var(--popover-border));
+  --color-primary:             hsl(var(--primary));
+  --color-primary-foreground:  hsl(var(--primary-foreground));
+  --color-primary-border:      var(--primary-border);
+  --color-secondary:           hsl(var(--secondary));
+  --color-secondary-foreground:hsl(var(--secondary-foreground));
+  --color-muted:               hsl(var(--muted));
+  --color-muted-foreground:    hsl(var(--muted-foreground));
+  --color-accent:              hsl(var(--accent));
+  --color-accent-foreground:   hsl(var(--accent-foreground));
+  --color-accent-border:       var(--accent-border);
+  --color-destructive:         hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --font-sans:  var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono:  var(--app-font-mono);
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+}
+
+/* ── Warm Scholar palette (always light) ──────────────────── */
+:root {
+  --opaque-button-border-intensity: -8;
+  --button-outline: rgba(0,0,0,.10);
+  --badge-outline:  rgba(0,0,0,.06);
+  --elevate-1: rgba(0,0,0,.03);
+  --elevate-2: rgba(0,0,0,.07);
+
+  /* Parchment base */
+  --background:           40 33% 96%;     /* #faf7f2 */
+  --foreground:           30 52% 12%;     /* #2c1f0e */
+  --border:               38 31% 75%;     /* #d9c9a8 */
+  --input:                38 31% 75%;
+  --ring:                 34 64% 47%;     /* amber */
+
+  /* Cards — pure white on parchment */
+  --card:                 0 0% 100%;
+  --card-foreground:      30 52% 12%;
+  --card-border:          37 36% 79%;     /* #e0d0b5 */
+
+  /* Popover */
+  --popover:              0 0% 100%;
+  --popover-foreground:   30 52% 12%;
+  --popover-border:       37 36% 79%;
+
+  /* Amber gold primary */
+  --primary:              34 64% 47%;     /* #c8882a */
+  --primary-foreground:   0 0% 100%;
+
+  /* Warm parchment secondary */
+  --secondary:            36 44% 88%;     /* #f0e6d0 */
+  --secondary-foreground: 30 52% 12%;
+
+  /* Muted */
+  --muted:                36 44% 88%;     /* #f0e6d0 */
+  --muted-foreground:     30 31% 45%;     /* #9a7a50 */
+
+  /* Accent = primary for this theme */
+  --accent:               34 64% 47%;
+  --accent-foreground:    0 0% 100%;
+
+  /* Destructive */
+  --destructive:          0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Charts */
+  --chart-1: 34 64% 47%;
+  --chart-2: 142 50% 40%;
+  --chart-3: 200 70% 45%;
+  --chart-4: 270 50% 55%;
+  --chart-5: 0 65% 52%;
+
+  /* Fonts */
+  --app-font-sans:  'Inter', system-ui, sans-serif;
+  --app-font-serif: 'Lora', 'Georgia', serif;
+  --app-font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+  --radius: .5rem;
+
+  /* Shadows — warm, subtle */
+  --shadow-xs:  0 1px 3px rgba(44,31,14,.08);
+  --shadow-sm:  0 2px 6px rgba(44,31,14,.10), 0 1px 2px rgba(44,31,14,.06);
+  --shadow:     0 4px 12px rgba(44,31,14,.12), 0 1px 2px rgba(44,31,14,.08);
+  --shadow-md:  0 6px 18px rgba(44,31,14,.14), 0 2px 4px rgba(44,31,14,.08);
+  --shadow-lg:  0 10px 28px rgba(44,31,14,.16), 0 4px 8px rgba(44,31,14,.08);
+
+  --primary-border: hsl(var(--primary));
+  --accent-border:  hsl(var(--accent));
+  --secondary-border: hsl(var(--secondary));
+
+  color-scheme: light;
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply font-sans antialiased bg-background text-foreground; }
+  h1, h2, h3 { font-family: var(--app-font-serif); }
+  ::selection { background: hsl(34 64% 47% / 0.18); }
+}
+
+/* ── Warm Scholar nav ─────────────────────────────────────── */
+.ws-nav {
+  background: #2c1f0e;
+  border-bottom: 1px solid #3a2a14;
+}
+.ws-nav-link { color: #c8b08a; }
+.ws-nav-link:hover,
+.ws-nav-link.active { color: #c8882a; }
+.ws-nav-logo { color: #f5e6c8; }
+
+/* ── Page section dividers ────────────────────────────────── */
+.ws-divider { border-color: #d9c9a8; }
+
+/* ── Tag badge ────────────────────────────────────────────── */
+.ws-badge {
+  display: inline-block;
+  background: #c8882a;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-family: var(--app-font-sans);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+}
+
+/* ── Section heading with amber accent bar ────────────────── */
+.ws-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ws-section-heading::before {
+  content: "";
+  display: block;
+  width: 3px;
+  height: 1.2em;
+  background: #c8882a;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Info / callout box ───────────────────────────────────── */
+.ws-callout {
+  background: #f0e6d0;
+  border: 1px solid #d9c9a8;
+  border-left: 4px solid #c8882a;
+  border-radius: 8px;
+  padding: 20px 22px;
+}
+.ws-callout-note  { border-left-color: #5a9a5a; }
+.ws-callout-caution { border-left-color: #c05050; }
+
+/* ── Paper / topic card ───────────────────────────────────── */
+.ws-card {
+  background: #fff;
+  border: 1px solid #e0d0b5;
+  border-radius: 8px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.ws-card:hover {
+  border-color: #c8882a;
+  box-shadow: 0 2px 12px rgba(200,136,42,.12);
+}
+
+/* ── Reading progress bar ─────────────────────────────────── */
+.reading-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #c8882a, #d4a862);
+  z-index: 9999;
+  transition: width 0.08s linear;
+}
+
+/* ── Code block ───────────────────────────────────────────── */
+.code-block {
+  font-family: var(--app-font-mono);
+  background: #faf0e0;
+  border: 1px solid #e0d0b5;
+  border-radius: 0 0 6px 6px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  color: #5a3a10;
+}
+
+/* ── Scroll reveal ────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.revealed { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.07s; }
+.reveal-delay-2 { transition-delay: 0.14s; }
+.reveal-delay-3 { transition-delay: 0.21s; }
+.reveal-delay-4 { transition-delay: 0.28s; }
+.reveal-delay-5 { transition-delay: 0.35s; }
+.reveal-delay-6 { transition-delay: 0.42s; }
+
+/* ── Fade-up ──────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up   { animation: fade-up 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+.fade-up-1 { animation: fade-up 0.5s 0.08s cubic-bezier(0.22,1,0.36,1) both; }
+.fade-up-2 { animation: fade-up 0.5s 0.16s cubic-bezier(0.22,1,0.36,1) both; }
+.fade-up-3 { animation: fade-up 0.5s 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+.fade-up-4 { animation: fade-up 0.5s 0.4s  cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Topic completed sidebar indicator ───────────────────── */
+.topic-completed { box-shadow: inset 3px 0 0 #5a9a5a; }
+
+/* ── Prose body text ──────────────────────────────────────── */
+.prose-content p {
+  color: #4a3520;
+  line-height: 1.85;
+  font-size: 0.9375rem;
+}
+.prose-content h1, .prose-content h2, .prose-content h3 {
+  color: #2c1f0e;
+  font-family: var(--app-font-serif);
+}
+
+/* ── Utilities ────────────────────────────────────────────── */
+@layer utilities {
+  input[type="search"]::-webkit-search-cancel-button { @apply hidden; }
+
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+}
