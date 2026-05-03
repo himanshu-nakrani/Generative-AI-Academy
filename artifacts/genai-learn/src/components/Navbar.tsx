@@ -14,6 +14,7 @@ import { useTheme } from "@/hooks/useTheme";
 const navLinks = [
   { href: "/topics",         label: "Topics" },
   { href: "/learning-paths", label: "Learning Paths" },
+  { href: "/leaderboard",    label: "Leaderboard" },
   { href: "/glossary",       label: "Glossary" },
   { href: "/resources",      label: "Resources" },
 ];

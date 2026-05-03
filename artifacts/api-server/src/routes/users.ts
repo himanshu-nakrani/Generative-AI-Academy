@@ -3,7 +3,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 import { db } from "@workspace/db";
 import { usersTable, userProgressTable, userStreaksTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
-import { UserProfileBody, UpdateProfileRequestBody } from "@workspace/api-zod";
+import { GetMyProfileResponse, UpdateMyProfileBody, UpdateMyProfileResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -11,23 +11,23 @@ const router: IRouter = Router();
 router.get("/user/me", requireAuth, async (req, res) => {
   const userId = res.locals.userId as string;
 
-  const [userRow, streakRow, progressResult] = await Promise.all([
+  const [userRows, streakRows, progressResult] = await Promise.all([
     db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1),
     db.select().from(userStreaksTable).where(eq(userStreaksTable.userId, userId)).limit(1),
     db
-      .select({ count: sql<number>`count(*)::int` })
+      .select({ count: sql<number>`cast(count(*) as int)` })
       .from(userProgressTable)
       .where(eq(userProgressTable.userId, userId)),
   ]);
 
-  const user = userRow[0];
+  const user = userRows[0];
   if (!user) {
     res.status(404).json({ error: "User not found. Sync your data first." });
     return;
   }
 
-  const streak = streakRow[0];
-  const response = UserProfileBody.parse({
+  const streak = streakRows[0];
+  const response = GetMyProfileResponse.parse({
     id:             user.id,
     email:          user.email,
     displayName:    user.displayName ?? null,
@@ -35,7 +35,7 @@ router.get("/user/me", requireAuth, async (req, res) => {
     completedCount: progressResult[0]?.count ?? 0,
     currentStreak:  streak?.currentStreak ?? 0,
     bestStreak:     streak?.bestStreak ?? 0,
-    createdAt:      user.createdAt.toISOString(),
+    createdAt:      user.createdAt,
   });
   res.json(response);
 });
@@ -44,7 +44,7 @@ router.get("/user/me", requireAuth, async (req, res) => {
 router.patch("/user/me", requireAuth, async (req, res) => {
   const userId = res.locals.userId as string;
 
-  const parsed = UpdateProfileRequestBody.safeParse(req.body);
+  const parsed = UpdateMyProfileBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid request body" });
     return;
@@ -67,23 +67,23 @@ router.patch("/user/me", requireAuth, async (req, res) => {
     return;
   }
 
-  const [streakRow, progressResult] = await Promise.all([
+  const [streakRows, progressResult] = await Promise.all([
     db.select().from(userStreaksTable).where(eq(userStreaksTable.userId, userId)).limit(1),
     db
-      .select({ count: sql<number>`count(*)::int` })
+      .select({ count: sql<number>`cast(count(*) as int)` })
       .from(userProgressTable)
       .where(eq(userProgressTable.userId, userId)),
   ]);
 
-  const response = UserProfileBody.parse({
+  const response = UpdateMyProfileResponse.parse({
     id:             user.id,
     email:          user.email,
     displayName:    user.displayName ?? null,
     avatarUrl:      user.avatarUrl ?? null,
     completedCount: progressResult[0]?.count ?? 0,
-    currentStreak:  streakRow[0]?.currentStreak ?? 0,
-    bestStreak:     streakRow[0]?.bestStreak ?? 0,
-    createdAt:      user.createdAt.toISOString(),
+    currentStreak:  streakRows[0]?.currentStreak ?? 0,
+    bestStreak:     streakRows[0]?.bestStreak ?? 0,
+    createdAt:      user.createdAt,
   });
   res.json(response);
 });

@@ -9,7 +9,7 @@ import {
   userBookmarksTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { SyncRequestBody, SyncResponseBody } from "@workspace/api-zod";
+import { SyncUserDataBody, SyncUserDataResponse, GetUserSyncDataResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
@@ -17,7 +17,7 @@ const router: IRouter = Router();
 router.post("/sync", requireAuth, async (req, res) => {
   const userId = res.locals.userId as string;
 
-  const parsed = SyncRequestBody.safeParse(req.body);
+  const parsed = SyncUserDataBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid request body" });
     return;
@@ -34,24 +34,16 @@ router.post("/sync", requireAuth, async (req, res) => {
     email,
   } = parsed.data;
 
-  // Upsert user
+  // Upsert user record
   await db
     .insert(usersTable)
-    .values({
-      id: userId,
-      email,
-      displayName: displayName ?? null,
-    })
+    .values({ id: userId, email, displayName: displayName ?? null })
     .onConflictDoUpdate({
       target: usersTable.id,
-      set: {
-        email,
-        displayName: displayName ?? null,
-        updatedAt: new Date(),
-      },
+      set: { email, displayName: displayName ?? null, updatedAt: new Date() },
     });
 
-  // Upsert progress — delete existing and re-insert for simplicity
+  // Replace progress
   await db.delete(userProgressTable).where(eq(userProgressTable.userId, userId));
   if (completedSlugs.length > 0) {
     await db.insert(userProgressTable).values(
@@ -59,7 +51,7 @@ router.post("/sync", requireAuth, async (req, res) => {
     );
   }
 
-  // Upsert bookmarks
+  // Replace bookmarks
   await db.delete(userBookmarksTable).where(eq(userBookmarksTable.userId, userId));
   if (bookmarkedSlugs.length > 0) {
     await db.insert(userBookmarksTable).values(
@@ -67,7 +59,7 @@ router.post("/sync", requireAuth, async (req, res) => {
     );
   }
 
-  // Upsert achievements
+  // Replace achievements
   await db.delete(userAchievementsTable).where(eq(userAchievementsTable.userId, userId));
   if (achievementIds.length > 0) {
     await db.insert(userAchievementsTable).values(
@@ -76,32 +68,26 @@ router.post("/sync", requireAuth, async (req, res) => {
   }
 
   // Upsert streak
+  const lastDate = lastActivityDate instanceof Date
+    ? lastActivityDate.toISOString().split("T")[0]
+    : (lastActivityDate ?? null);
+
   await db
     .insert(userStreaksTable)
-    .values({
-      userId,
-      currentStreak,
-      bestStreak,
-      lastActivityDate: lastActivityDate ?? null,
-    })
+    .values({ userId, currentStreak, bestStreak, lastActivityDate: lastDate })
     .onConflictDoUpdate({
       target: userStreaksTable.userId,
-      set: {
-        currentStreak,
-        bestStreak,
-        lastActivityDate: lastActivityDate ?? null,
-      },
+      set: { currentStreak, bestStreak, lastActivityDate: lastDate },
     });
 
-  const syncedAt = new Date().toISOString();
-  const response = SyncResponseBody.parse({
+  const response = SyncUserDataResponse.parse({
     completedSlugs,
     bookmarkedSlugs,
     achievementIds,
     currentStreak,
     bestStreak,
-    lastActivityDate: lastActivityDate ?? null,
-    syncedAt,
+    lastActivityDate: lastDate ?? null,
+    syncedAt: new Date(),
   });
   res.json(response);
 });
@@ -110,22 +96,22 @@ router.post("/sync", requireAuth, async (req, res) => {
 router.get("/sync", requireAuth, async (req, res) => {
   const userId = res.locals.userId as string;
 
-  const [progress, bookmarks, achievements, streak] = await Promise.all([
+  const [progress, bookmarks, achievements, streakRows] = await Promise.all([
     db.select().from(userProgressTable).where(eq(userProgressTable.userId, userId)),
     db.select().from(userBookmarksTable).where(eq(userBookmarksTable.userId, userId)),
     db.select().from(userAchievementsTable).where(eq(userAchievementsTable.userId, userId)),
     db.select().from(userStreaksTable).where(eq(userStreaksTable.userId, userId)),
   ]);
 
-  const streakRow = streak[0];
-  const response = SyncResponseBody.parse({
+  const streak = streakRows[0];
+  const response = GetUserSyncDataResponse.parse({
     completedSlugs:  progress.map((r) => r.topicSlug),
     bookmarkedSlugs: bookmarks.map((r) => r.topicSlug),
     achievementIds:  achievements.map((r) => r.achievementId),
-    currentStreak:   streakRow?.currentStreak ?? 0,
-    bestStreak:      streakRow?.bestStreak ?? 0,
-    lastActivityDate: streakRow?.lastActivityDate ?? null,
-    syncedAt:        new Date().toISOString(),
+    currentStreak:   streak?.currentStreak ?? 0,
+    bestStreak:      streak?.bestStreak ?? 0,
+    lastActivityDate: streak?.lastActivityDate ?? null,
+    syncedAt:        new Date(),
   });
   res.json(response);
 });

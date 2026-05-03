@@ -33,9 +33,10 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - Static content, no backend dependency for content (all localStorage-first)
 - Auth via Clerk (`@clerk/react`) — Replit-managed, provisioned via `setupClerkWhitelabelAuth`
 - 40 topics, 200 MCQ quiz questions, daily challenge, full-text search + filters
-- Routes: `/`, `/topics`, `/topic/:slug`, `/learning-paths`, `/glossary`, `/resources`, `/progress`, `/map`, `/notes`, `/quiz/:slug`, `/search`, `/achievements`, `/bookmarks`, `/profile`, `/streaks`, `/quiz-stats`, `/sign-in/*?`, `/sign-up/*?`
+- Routes: `/`, `/topics`, `/topic/:slug`, `/learning-paths`, `/glossary`, `/resources`, `/progress`, `/map`, `/notes`, `/quiz/:slug`, `/search`, `/achievements`, `/bookmarks`, `/profile`, `/streaks`, `/quiz-stats`, `/leaderboard`, `/sign-in/*?`, `/sign-up/*?`
 - **Phase 3A features** (smart learning): Streaks heatmap (`/streaks`), quiz analytics dashboard (`/quiz-stats`), smart topic recommendations (Home widget + hook)
 - **Phase 3B features** (polish & power): Theme toggle (sun/moon + auto), keyboard shortcuts (`?` modal + `j`/`k`/`b`/`m`/`r` hotkeys), weekly goals widget (Home), 24+ hour auth with OAuth ready
+- **Phase 4 features** (backend sync): PostgreSQL schema (users, progress, streaks, achievements, bookmarks), REST API (`POST /api/sync`, `GET /api/sync`, `GET /api/leaderboard`, `GET /api/user/me`, `PATCH /api/user/me`), auto sync on login + every 5 min + on unload, Leaderboard page (`/leaderboard`), Profile sync status + "Sync Now" button
 - localStorage keys: `genai-learn:completed`, `genai-learn:theme`, `genai-learn:recent`, `genai-learn:streak`, `genai-learn:last-date`, `genai-learn:best-streak`, `genai-learn:prefs`, `genai-learn:highlights`, `genai-learn:quiz-scores`, `genai-learn:daily-challenge`, `genai-learn:bookmarks`, `genai-learn:srs`, `genai-learn:achievements`
 - Phase 2 features: Achievement system (24 badges, 4 categories, rarity tiers), Bookmarks (save/reading list), Spaced Repetition (SRS scheduling for completed topics, due-for-review widget on Home), Voice Reader (Web Speech API in TopicDetail sidebar), Social Sharing (ShareModal with copy/Web Share API), Export Progress (JSON download), Prerequisite lock indicators on Topics page
 - Context providers order: ClerkProvider → AppProvider → AchievementsProvider → PrefsProvider

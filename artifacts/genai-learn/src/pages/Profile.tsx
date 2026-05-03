@@ -1,9 +1,11 @@
-import { useUser, useClerk, SignOutButton } from "@clerk/react";
-import { Mail, LogOut, Calendar, Award, BookOpen, Flame } from "lucide-react";
+import { useState } from "react";
+import { useUser, useClerk } from "@clerk/react";
+import { Mail, LogOut, Calendar, Award, BookOpen, Flame, Cloud, CloudOff, RefreshCw, Check, Trophy } from "lucide-react";
 import { Link } from "wouter";
 import { useApp } from "@/context/AppContext";
 import { useAchievements } from "@/context/AchievementsContext";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { useSyncToServer } from "@/hooks/useSyncToServer";
 
 export default function Profile() {
   const { user, isLoaded } = useUser();
@@ -11,6 +13,18 @@ export default function Profile() {
   const { completed, streak, bestStreak } = useApp();
   const { earnedCount } = useAchievements();
   const { bookmarkCount } = useBookmarks();
+  const { syncNow, lastSync } = useSyncToServer();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncDone, setSyncDone] = useState(false);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncDone(false);
+    await syncNow();
+    setIsSyncing(false);
+    setSyncDone(true);
+    setTimeout(() => setSyncDone(false), 3000);
+  };
 
   if (!isLoaded) {
     return (
@@ -34,7 +48,7 @@ export default function Profile() {
           </div>
           <div>
             <h1 className="text-2xl font-semibold text-foreground mb-2">Not signed in</h1>
-            <p className="text-muted-foreground mb-6">Sign in to view your profile and learning stats.</p>
+            <p className="text-muted-foreground mb-6">Sign in to view your profile and sync progress across devices.</p>
             <Link href="/sign-in" className="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
               Sign In
             </Link>
@@ -46,15 +60,17 @@ export default function Profile() {
 
   const name = user.firstName || user.username || "User";
   const email = user.primaryEmailAddress?.emailAddress || "No email";
-  const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "Unknown";
+  const joinDate = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    : "Unknown";
 
   return (
     <main className="min-h-[calc(100dvh-56px)] bg-background px-4 py-8 sm:px-8">
       <div className="max-w-2xl mx-auto">
+
         {/* Header Card */}
         <div className="bg-card border border-border rounded-xl p-6 sm:p-8 mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
-            {/* Avatar */}
             {user.imageUrl ? (
               <img src={user.imageUrl} alt={name} className="w-20 h-20 rounded-full object-cover border-2 border-primary" />
             ) : (
@@ -67,22 +83,51 @@ export default function Profile() {
               <h1 className="text-3xl font-semibold text-foreground mb-1">{name}</h1>
               <div className="flex items-center gap-2 text-muted-foreground mb-3">
                 <Mail className="w-4 h-4" />
-                <a href={`mailto:${email}`} className="hover:text-foreground transition-colors">
-                  {email}
-                </a>
+                <a href={`mailto:${email}`} className="hover:text-foreground transition-colors">{email}</a>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 <Calendar className="w-4 h-4" />
                 <span>Joined {joinDate}</span>
               </div>
-              <button
-                onClick={() => signOut()}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors text-sm font-medium"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={handleSync}
+                  disabled={isSyncing}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors text-sm font-medium disabled:opacity-60"
+                >
+                  {syncDone
+                    ? <><Check className="w-4 h-4" /> Synced!</>
+                    : isSyncing
+                    ? <><RefreshCw className="w-4 h-4 animate-spin" /> Syncing...</>
+                    : <><Cloud className="w-4 h-4" /> Sync Now</>
+                  }
+                </button>
+                <button
+                  onClick={() => signOut()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors text-sm font-medium"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+              {lastSync && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Last synced: {lastSync.toLocaleString()}
+                </p>
+              )}
             </div>
+          </div>
+        </div>
+
+        {/* Sync Status Banner */}
+        <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3">
+          <Cloud className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Cloud Sync Active</p>
+            <p className="text-xs text-muted-foreground">
+              Your progress, bookmarks, achievements, and streaks sync automatically every 5 minutes while signed in.
+              Your data is always available across devices.
+            </p>
           </div>
         </div>
 
@@ -150,6 +195,15 @@ export default function Profile() {
                 </div>
               </div>
             </Link>
+            <Link href="/leaderboard">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
+                <Trophy className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium text-foreground">Leaderboard</p>
+                  <p className="text-xs text-muted-foreground">See top learners</p>
+                </div>
+              </div>
+            </Link>
             <Link href="/achievements">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
                 <Award className="w-5 h-5 text-muted-foreground" />
@@ -167,15 +221,6 @@ export default function Profile() {
                 <div>
                   <p className="font-medium text-foreground">Bookmarks</p>
                   <p className="text-xs text-muted-foreground">Saved reading list</p>
-                </div>
-              </div>
-            </Link>
-            <Link href="/">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
-                <BookOpen className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium text-foreground">Continue Learning</p>
-                  <p className="text-xs text-muted-foreground">Back to home</p>
                 </div>
               </div>
             </Link>

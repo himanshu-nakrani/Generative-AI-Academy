@@ -28,6 +28,8 @@ import QuizStats from "@/pages/QuizStats";
 import { KeyboardShortcutsModal } from "@/components/KeyboardShortcutsModal";
 import { AchievementsProvider } from "@/context/AchievementsContext";
 import { AchievementToastManager } from "@/components/AchievementToast";
+import { SyncProvider } from "@/components/SyncProvider";
+import Leaderboard from "@/pages/Leaderboard";
 
 const queryClient = new QueryClient();
 
@@ -180,6 +182,7 @@ function Router() {
           <Route path="/profile"        component={Profile} />
           <Route path="/streaks"        component={Streaks} />
           <Route path="/quiz-stats"     component={QuizStats} />
+          <Route path="/leaderboard"    component={Leaderboard} />
           <Route path="/sign-in/*?"     component={SignInPage} />
           <Route path="/sign-up/*?"     component={SignUpPage} />
           <Route                        component={NotFound} />
@@ -224,10 +227,12 @@ function ClerkProviderWithRoutes() {
         <TooltipProvider>
           <AppProvider>
             <AchievementsProvider>
-              <PrefsProvider>
-                <AchievementToastManager />
-                <Router />
-              </PrefsProvider>
+              <SyncProvider>
+                <PrefsProvider>
+                  <AchievementToastManager />
+                  <Router />
+                </PrefsProvider>
+              </SyncProvider>
             </AchievementsProvider>
           </AppProvider>
           <Toaster />
