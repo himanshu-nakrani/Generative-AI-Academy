@@ -6,7 +6,7 @@ import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppProvider } from "@/context/AppContext";
-import { PrefsProvider } from "@/context/PrefsContext";
+import { PrefsProvider, usePrefs } from "@/context/PrefsContext";
 import Navbar from "@/components/Navbar";
 import Home from "@/pages/Home";
 import Topics from "@/pages/Topics";
@@ -47,43 +47,61 @@ function stripBase(path: string): string {
     : path;
 }
 
-const clerkAppearance = {
-  theme: shadcn,
-  cssLayerName: "clerk",
-  options: {
-    logoPlacement: "inside" as const,
-    logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
-    socialButtonsPlacement: "top" as const,
-  },
-  variables: {
-    colorPrimary: "hsl(45, 66%, 52%)",
-    colorForeground: "hsl(240, 7%, 92%)",
-    colorMutedForeground: "hsl(240, 4%, 62%)",
-    colorDanger: "hsl(0, 68%, 58%)",
-    colorBackground: "hsl(214, 22%, 8%)",
-    colorInput: "hsl(216, 32%, 24%)",
-    colorInputForeground: "hsl(240, 7%, 92%)",
-    colorNeutral: "hsl(240, 4%, 55%)",
-    fontFamily: "'Inter', system-ui, sans-serif",
-    borderRadius: "0.375rem",
-  },
-  elements: {
-    rootBox: "w-full flex justify-center",
-    cardBox: "rounded-xl w-[440px] max-w-full overflow-hidden shadow-2xl",
-    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "font-semibold",
-    socialButtonsBlockButtonText: "font-medium",
-    formFieldLabel: "font-medium text-sm",
-    footerActionLink: "font-medium",
-    logoBox: "flex justify-center mb-2",
-    logoImage: "w-12 h-12",
-    formButtonPrimary: "font-medium",
-    formFieldRow: "mb-4",
-    main: "px-8 py-6",
-  },
-};
+function buildClerkAppearance(dark: boolean) {
+  return {
+    theme: shadcn,
+    cssLayerName: "clerk",
+    options: {
+      logoPlacement: "inside" as const,
+      logoLinkUrl: basePath || "/",
+      logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+      socialButtonsPlacement: "top" as const,
+    },
+    variables: dark
+      ? {
+          // Dark: warm charcoal background, warm white foreground
+          colorPrimary:         "hsl(30, 12%, 88%)",   // warm white primary
+          colorBackground:      "hsl(20, 14%, 7%)",    // #121110
+          colorForeground:      "hsl(30, 12%, 88%)",   // #E3DFD9
+          colorMutedForeground: "hsl(30, 10%, 55%)",
+          colorDanger:          "hsl(0, 68%, 50%)",
+          colorInput:           "hsl(20, 12%, 10%)",   // card bg
+          colorInputForeground: "hsl(30, 12%, 88%)",
+          colorNeutral:         "hsl(30, 10%, 55%)",
+          fontFamily:           "'Inter', system-ui, sans-serif",
+          borderRadius:         "0.5rem",
+        }
+      : {
+          // Light: warm cream background, deep charcoal foreground
+          colorPrimary:         "hsl(20, 14%, 12%)",   // #1F1B18 charcoal
+          colorBackground:      "hsl(36, 33%, 97%)",   // #FAF9F7 cream
+          colorForeground:      "hsl(20, 14%, 8%)",    // #141210
+          colorMutedForeground: "hsl(20, 10%, 38%)",   // #635A52
+          colorDanger:          "hsl(0, 68%, 50%)",
+          colorInput:           "hsl(36, 33%, 97%)",
+          colorInputForeground: "hsl(20, 14%, 8%)",
+          colorNeutral:         "hsl(20, 10%, 38%)",
+          fontFamily:           "'Inter', system-ui, sans-serif",
+          borderRadius:         "0.5rem",
+        },
+    elements: {
+      rootBox:                       "w-full flex justify-center",
+      cardBox:                       "rounded-xl w-[440px] max-w-full overflow-hidden shadow-lg border border-border",
+      card:                          "!shadow-none !border-0 !bg-transparent !rounded-none",
+      footer:                        "!shadow-none !border-0 !bg-transparent !rounded-none",
+      headerTitle:                   "font-semibold tracking-tight",
+      headerSubtitle:                "text-muted-foreground",
+      socialButtonsBlockButtonText:  "font-medium",
+      formFieldLabel:                "font-medium text-sm",
+      footerActionLink:              "font-medium",
+      logoBox:                       "flex justify-center mb-2",
+      logoImage:                     "w-12 h-12",
+      formButtonPrimary:             "font-medium",
+      formFieldRow:                  "mb-4",
+      main:                          "px-8 py-6",
+    },
+  };
+}
 
 function AuthPageWrapper({ children, subtitle }: { children: React.ReactNode; subtitle: string }) {
   return (
@@ -104,6 +122,7 @@ function AuthPageWrapper({ children, subtitle }: { children: React.ReactNode; su
 }
 
 function SignInPage() {
+  const { dark } = usePrefs();
   return (
     <AuthPageWrapper subtitle="Sign in to sync your progress across devices">
       <SignIn
@@ -111,11 +130,11 @@ function SignInPage() {
         path={`${basePath}/sign-in`}
         signUpUrl={`${basePath}/sign-up`}
         fallbackRedirectUrl={`${basePath}/`}
-        appearance={clerkAppearance}
+        appearance={buildClerkAppearance(dark)}
       />
-      <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+      <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
         <p className="text-xs text-muted-foreground text-center">
-          💡 <strong>Tip:</strong> Use Google or GitHub OAuth above for instant signup with one click
+          <strong>Tip:</strong> Use Google or GitHub OAuth above for instant signup with one click
         </p>
       </div>
     </AuthPageWrapper>
@@ -123,6 +142,7 @@ function SignInPage() {
 }
 
 function SignUpPage() {
+  const { dark } = usePrefs();
   return (
     <AuthPageWrapper subtitle="Create an account to save your progress">
       <SignUp
@@ -130,11 +150,11 @@ function SignUpPage() {
         path={`${basePath}/sign-up`}
         signInUrl={`${basePath}/sign-in`}
         fallbackRedirectUrl={`${basePath}/`}
-        appearance={clerkAppearance}
+        appearance={buildClerkAppearance(dark)}
       />
-      <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+      <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
         <p className="text-xs text-muted-foreground text-center">
-          🚀 <strong>Fast signup:</strong> Google or GitHub above — takes 10 seconds!
+          <strong>Fast signup:</strong> Google or GitHub above takes 10 seconds
         </p>
       </div>
     </AuthPageWrapper>
@@ -203,12 +223,13 @@ function Router() {
 
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
+  const isDark = document.documentElement.classList.contains("dark");
 
   return (
     <ClerkProvider
       publishableKey={clerkPubKey!}
       proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
+      appearance={buildClerkAppearance(isDark)}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
       signInFallbackRedirectUrl={`${basePath}/`}
