@@ -3,11 +3,13 @@ import { useState } from "react";
 import {
   Menu, X, Flame, BarChart3, Network, Highlighter, Search,
   LogIn, LogOut, User, ChevronDown, Bookmark, Trophy, Calendar,
+  Sun, Moon, HelpCircle,
 } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 import { useAchievements } from "@/context/AchievementsContext";
+import { useTheme } from "@/hooks/useTheme";
 
 const navLinks = [
   { href: "/topics",         label: "Topics" },
@@ -114,6 +116,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { completedCount, streak } = useApp();
   const { earnedCount, newlyEarned } = useAchievements();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
@@ -173,7 +176,7 @@ export default function Navbar() {
           </div>
 
           {/* Right side */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1">
             {streak > 0 && (
               <span className="flex items-center gap-1 text-xs font-medium text-orange-500 tabular-nums">
                 <Flame className="w-3.5 h-3.5" />{streak}
@@ -208,6 +211,24 @@ export default function Navbar() {
               }`}>
               <Bookmark className="w-3.5 h-3.5" />
             </Link>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              title={`Theme: ${theme}`}
+            >
+              {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : theme === "light" ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 opacity-60" />}
+            </button>
+
+            {/* Help / Shortcuts */}
+            <button
+              onClick={() => document.dispatchEvent(new CustomEvent("open-shortcuts"))}
+              className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              title="Keyboard shortcuts (press ?)"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+            </button>
 
             {/* Auth */}
             <Show when="signed-in">

@@ -25,6 +25,7 @@ import Bookmarks from "@/pages/Bookmarks";
 import Profile from "@/pages/Profile";
 import Streaks from "@/pages/Streaks";
 import QuizStats from "@/pages/QuizStats";
+import { KeyboardShortcutsModal } from "@/components/KeyboardShortcutsModal";
 import { AchievementsProvider } from "@/context/AchievementsContext";
 import { AchievementToastManager } from "@/components/AchievementToast";
 
@@ -160,6 +161,7 @@ function Router() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
+      <KeyboardShortcutsModal />
       <main>
         <Switch>
           <Route path="/"               component={Home} />

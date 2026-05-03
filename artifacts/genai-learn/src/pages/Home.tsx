@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import {
   ArrowRight, BookOpen, Layers, Network, FlaskConical,
   Cpu, Microscope, ChevronRight, Flame, CheckCircle2, Clock,
-  Zap, CheckCircle, XCircle, RotateCcw,
+  Zap, CheckCircle, XCircle, RotateCcw, Target,
 } from "lucide-react";
 import { topics, categoryColors, categories, learningPaths, type Category } from "@/data/topics";
 import { getTopicBySlug } from "@/data/topics";
@@ -13,6 +13,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useApp } from "@/context/AppContext";
 import { getDueReviews } from "@/hooks/useSpacedRepetition";
 import { SmartRecommendations } from "@/components/SmartRecommendations";
+import { useWeeklyGoals } from "@/hooks/useWeeklyGoals";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -88,6 +89,117 @@ function DailyChallengeWidget() {
       ) : (
         <div className="text-xs text-muted-foreground leading-relaxed bg-muted/40 rounded-md px-3 py-2">
           {question.explanation}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WeeklyGoalsWidget() {
+  const { goals, saveGoals } = useWeeklyGoals();
+  const { completed } = useApp();
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempGoals, setTempGoals] = useState(goals);
+
+  const estimatedThisWeek = Math.min(completed.size, goals.topicsPerWeek);
+  const weeklyProgress = Math.round((estimatedThisWeek / goals.topicsPerWeek) * 100);
+
+  const handleSave = () => {
+    saveGoals(tempGoals);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-6 mb-8">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+            <Target className="w-5 h-5 text-cyan-500" />
+            Weekly Goal
+          </h2>
+          <p className="text-sm text-muted-foreground">Track your learning progress this week</p>
+        </div>
+        <button
+          onClick={() => setIsEditing(!isEditing)}
+          className="px-3 py-1.5 text-xs rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-600 font-medium transition-colors"
+        >
+          {isEditing ? "Cancel" : "Edit"}
+        </button>
+      </div>
+
+      {isEditing ? (
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground block mb-2">
+              Topics to complete this week
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={tempGoals.topicsPerWeek}
+              onChange={(e) => setTempGoals({ ...tempGoals, topicsPerWeek: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground block mb-2">
+              Minutes to study per day
+            </label>
+            <input
+              type="number"
+              min="5"
+              max="300"
+              step="5"
+              value={tempGoals.minutesPerDay}
+              onChange={(e) => setTempGoals({ ...tempGoals, minutesPerDay: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm"
+            />
+          </div>
+
+          <button
+            onClick={handleSave}
+            className="w-full px-3 py-2 rounded-lg bg-cyan-500 text-cyan-950 font-medium hover:bg-cyan-600 transition-colors text-sm"
+          >
+            Save Goals
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-end justify-between mb-2">
+              <span className="text-sm font-medium text-foreground">Topics: {estimatedThisWeek}/{goals.topicsPerWeek}</span>
+              <span className="text-xs text-muted-foreground">{weeklyProgress}%</span>
+            </div>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
+                style={{ width: `${Math.min(weeklyProgress, 100)}%` }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-end justify-between mb-2">
+              <span className="text-sm text-muted-foreground">{goals.minutesPerDay} min/day goal</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              💡 {goals.minutesPerDay} minutes × 7 days = {goals.minutesPerDay * 7} minutes per week
+            </p>
+          </div>
+
+          {weeklyProgress >= 100 ? (
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <p className="text-xs text-emerald-600 font-medium">🎉 Goal achieved! Keep going to earn more achievements.</p>
+            </div>
+          ) : (
+            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <p className="text-xs text-blue-600">
+                {goals.topicsPerWeek - estimatedThisWeek} topic{goals.topicsPerWeek - estimatedThisWeek !== 1 ? "s" : ""} left this week
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -302,6 +414,22 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* ── Weekly Goals Widget ──────────────────────────────── */}
+      {isReturning && (
+        <section className="py-8 px-5 sm:px-8 border-b border-border">
+          <div className="max-w-5xl mx-auto">
+            <WeeklyGoalsWidget />
+          </div>
+        </section>
+      )}
+
+      {/* ── Smart Recommendations ─────────────────────────────── */}
+      <section className="py-8 px-5 sm:px-8 border-b border-border">
+        <div className="max-w-5xl mx-auto">
+          <SmartRecommendations />
+        </div>
+      </section>
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="pt-16 pb-12 px-5 sm:px-8 border-b border-border">
