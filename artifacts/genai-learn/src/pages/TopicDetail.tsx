@@ -16,6 +16,7 @@ import { usePrefs, fontSizePx, lineHeightVal } from "@/context/PrefsContext";
 import { useHighlights, HIGHLIGHT_COLORS, type Highlight } from "@/hooks/useHighlights";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import { diagramRegistry } from "@/components/Diagrams";
+import { InteractiveDiagram, interactiveRegistry } from "@/components/InteractiveDiagrams";
 import { getPrerequisites } from "@/data/prerequisites";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useAchievements } from "@/context/AchievementsContext";
@@ -909,6 +910,9 @@ export default function TopicDetail() {
                       ))}
                       {section.code && <CodeBlock code={section.code} />}
                       {diagramRegistry[`${topic.slug}:${i}`]}
+                      {interactiveRegistry[`${topic.slug}:${i}`] && (
+                        <InteractiveDiagram id={`${topic.slug}:${i}`} />
+                      )}
                     </div>
                   </div>
                 ))}
