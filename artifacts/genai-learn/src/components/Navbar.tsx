@@ -34,11 +34,14 @@ function UserMenu() {
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-muted transition-colors text-sm"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`User menu for ${name}`}
       >
         {user.imageUrl ? (
-          <img src={user.imageUrl} alt={name} className="w-7 h-7 rounded-full object-cover ring-1 ring-border" />
+          <img src={user.imageUrl} alt="" className="w-7 h-7 rounded-full object-cover ring-1 ring-border" />
         ) : (
-          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-medium">
+          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-medium" aria-hidden="true">
             {initials.toUpperCase() || <User className="w-3.5 h-3.5" />}
           </div>
         )}
@@ -46,8 +49,12 @@ function UserMenu() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div 
+            className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden"
+            role="menu"
+            aria-label="User menu"
+          >
             <div className="px-4 py-3 border-b border-border bg-muted/30">
               <p className="text-sm font-medium text-foreground truncate">{name}</p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -124,11 +131,12 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav - center */}
-          <div className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
             {navLinks.map(({ href, label }) => {
               const active = location === href || (href !== "/" && location.startsWith(href));
               return (
                 <Link key={href} href={href}
+                  aria-current={active ? "page" : undefined}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     active 
                       ? "text-foreground bg-muted" 
@@ -138,16 +146,19 @@ export default function Navbar() {
                 </Link>
               );
             })}
-          </div>
+          </nav>
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-2">
             {/* Search trigger */}
             <Link href="/search">
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground">
-                <Search className="w-3.5 h-3.5" />
+              <button 
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground"
+                aria-label="Search topics (Command+K)"
+              >
+                <Search className="w-3.5 h-3.5" aria-hidden="true" />
                 <span className="hidden lg:inline">Search</span>
-                <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-background text-[10px] font-mono text-muted-foreground border border-border">
+                <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-background text-[11px] font-mono text-muted-foreground border border-border" aria-hidden="true">
                   <Command className="w-2.5 h-2.5" />K
                 </kbd>
               </button>
@@ -155,32 +166,36 @@ export default function Navbar() {
 
             {/* Stats pills */}
             {streak > 0 && (
-              <span className="flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full bg-orange-50 dark:bg-orange-950/30">
-                <Flame className="w-3.5 h-3.5" />{streak}
+              <span 
+                className="flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full bg-orange-50 dark:bg-orange-950/30"
+                aria-label={`${streak} day learning streak`}
+                role="status"
+              >
+                <Flame className="w-3.5 h-3.5" aria-hidden="true" />{streak}
               </span>
             )}
             
             {completedCount > 0 && (
-              <Link href="/progress">
+              <Link href="/progress" aria-label={`Progress: ${completedCount} of ${topics.length} topics completed`}>
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1 rounded-full bg-muted hover:bg-muted/80">
-                  <BarChart3 className="w-3 h-3" />
+                  <BarChart3 className="w-3 h-3" aria-hidden="true" />
                   {completedCount}/{topics.length}
                 </span>
               </Link>
             )}
 
             {/* Achievements */}
-            <Link href="/achievements" className="relative">
+            <Link href="/achievements" className="relative" aria-label={`Achievements: ${earnedCount} earned${newlyEarned.length > 0 ? `, ${newlyEarned.length} new` : ''}`}>
               <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${
                 location === "/achievements" 
                   ? "bg-accent/10 text-accent" 
                   : "text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80"
               }`}>
-                <Trophy className="w-3 h-3" />
+                <Trophy className="w-3 h-3" aria-hidden="true" />
                 {earnedCount}
               </span>
               {newlyEarned.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
               )}
             </Link>
 
@@ -188,8 +203,10 @@ export default function Navbar() {
             <button
               onClick={toggleDark}
               className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+              aria-pressed={dark}
             >
-              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {dark ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
             </button>
 
             {/* Auth */}

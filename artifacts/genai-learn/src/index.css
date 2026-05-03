@@ -93,10 +93,10 @@
 
   /* Muted */
   --muted:                30 16% 94%;     /* #F2EFEB */
-  --muted-foreground:     20 8% 46%;      /* #786F68 warm gray */
+  --muted-foreground:     20 10% 38%;     /* #635A52 - 4.6:1 contrast on cream */
 
   /* Accent — warm terracotta for highlights */
-  --accent:               15 60% 52%;     /* #C46442 terracotta */
+  --accent:               15 65% 42%;     /* #A04D2C - 4.5:1 contrast on cream */
   --accent-foreground:    36 33% 97%;
 
   /* Destructive */
@@ -159,7 +159,7 @@
   --secondary:     20 12% 14%;
   --secondary-foreground: 30 12% 88%;
   --muted:         20 10% 14%;
-  --muted-foreground: 30 8% 52%;
+  --muted-foreground: 30 10% 62%;        /* 4.5:1 contrast on dark bg */
   --accent:        15 55% 58%;            /* lighter terracotta */
   --accent-foreground: 20 14% 7%;
   --destructive:   0 62% 56%;
@@ -178,7 +178,35 @@
 @layer base {
   * { @apply border-border; }
   body { @apply font-sans antialiased bg-background text-foreground; }
-  ::selection { background: hsl(45 66% 52% / 0.28); }
+  ::selection { background: hsl(var(--accent) / 0.25); }
+  
+  /* Enhanced focus states for accessibility */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Remove default outline and use ring for interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+    border-radius: inherit;
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* ── Typography ───────────────────────────────────────────── */

@@ -38,66 +38,82 @@ function DailyChallengeWidget() {
   const isCorrect = revealed && selected === question.answer;
 
   return (
-    <div className="p-6 rounded-2xl border border-border bg-card">
+    <article className="p-6 rounded-2xl border border-border bg-card" aria-labelledby="daily-challenge-title">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center" aria-hidden="true">
           <Zap className="w-4 h-4 text-accent" />
         </div>
         <div>
-          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Daily Challenge</span>
+          <h2 id="daily-challenge-title" className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Daily Challenge</h2>
           {revealed && (
-            <span className={`ml-2 text-xs font-medium ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
-              {isCorrect ? "Correct" : "Incorrect"}
+            <span 
+              className={`ml-2 text-sm font-medium ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
+              role="status"
+              aria-live="polite"
+            >
+              {isCorrect ? "Correct!" : "Incorrect"}
             </span>
           )}
         </div>
       </div>
 
       {topic && (
-        <p className="text-xs text-muted-foreground mb-3">
+        <p className="text-sm text-muted-foreground mb-3">
           From: <Link href={`/topic/${question.slug}`}><span className="text-accent hover:underline cursor-pointer">{topic.title}</span></Link>
         </p>
       )}
 
-      <p className="text-sm font-medium leading-relaxed mb-4">{question.q}</p>
+      <p id="quiz-question" className="text-base font-medium leading-relaxed mb-4">{question.q}</p>
 
-      <div className="space-y-2 mb-4">
+      <fieldset aria-describedby="quiz-question" className="space-y-2 mb-4">
+        <legend className="sr-only">Select your answer</legend>
         {question.options.map((opt, idx) => {
           let cls = "w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border text-sm transition-all";
           if (revealed) {
-            if (idx === question.answer) cls += " border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200";
-            else if (idx === selected) cls += " border-red-400 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200";
-            else cls += " border-border/50 text-muted-foreground/50";
+            if (idx === question.answer) cls += " border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200";
+            else if (idx === selected) cls += " border-red-500 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200";
+            else cls += " border-border/50 text-muted-foreground/60";
           } else if (idx === selected) {
             cls += " border-primary bg-primary/5 cursor-pointer";
           } else {
             cls += " border-border bg-card hover:border-primary/40 cursor-pointer";
           }
           return (
-            <button key={idx} className={cls} onClick={() => !revealed && setSelected(idx)}>
-              <span className="w-6 h-6 flex-shrink-0 rounded-full border text-xs flex items-center justify-center font-semibold border-current">
+            <button 
+              key={idx} 
+              className={cls} 
+              onClick={() => !revealed && setSelected(idx)}
+              aria-pressed={selected === idx}
+              aria-disabled={revealed}
+              disabled={revealed}
+            >
+              <span className="w-6 h-6 flex-shrink-0 rounded-full border text-xs flex items-center justify-center font-semibold border-current" aria-hidden="true">
                 {OPTION_LABELS[idx]}
               </span>
               <span className="line-clamp-2 text-left">{opt}</span>
             </button>
           );
         })}
-      </div>
+      </fieldset>
 
       {!revealed ? (
         <button
           onClick={submit}
           disabled={selected === null}
           className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-describedby={selected === null ? "select-answer-hint" : undefined}
         >
           Submit Answer
         </button>
       ) : (
-        <div className="text-sm text-muted-foreground leading-relaxed bg-muted/50 rounded-xl px-4 py-3">
+        <div className="text-sm text-muted-foreground leading-relaxed bg-muted/50 rounded-xl px-4 py-3" role="status">
           {question.explanation}
         </div>
       )}
-    </div>
+      {selected === null && !revealed && (
+        <p id="select-answer-hint" className="sr-only">Please select an answer before submitting</p>
+      )}
+    </article>
   );
 }
 
@@ -138,17 +154,20 @@ function WeeklyGoalsWidget() {
       {isEditing ? (
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-medium text-muted-foreground block mb-2">
+            <label htmlFor="topics-per-week" className="text-sm font-medium text-muted-foreground block mb-2">
               Topics per week
             </label>
             <input
+              id="topics-per-week"
               type="number"
               min="1"
               max="20"
               value={tempGoals.topicsPerWeek}
               onChange={(e) => setTempGoals({ ...tempGoals, topicsPerWeek: parseInt(e.target.value) })}
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-sm"
+              aria-describedby="topics-per-week-hint"
             />
+            <p id="topics-per-week-hint" className="sr-only">Enter a number between 1 and 20</p>
           </div>
           <button
             onClick={handleSave}
@@ -161,16 +180,23 @@ function WeeklyGoalsWidget() {
         <div>
           <div className="flex items-end justify-between mb-2">
             <span className="text-sm font-medium text-foreground">{estimatedThisWeek} of {goals.topicsPerWeek} topics</span>
-            <span className="text-xs text-muted-foreground">{weeklyProgress}%</span>
+            <span className="text-sm text-muted-foreground">{weeklyProgress}%</span>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="w-full h-2 bg-muted rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={weeklyProgress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Weekly goal progress: ${estimatedThisWeek} of ${goals.topicsPerWeek} topics completed`}
+          >
             <div
               className="h-full bg-primary rounded-full transition-all duration-500"
               style={{ width: `${Math.min(weeklyProgress, 100)}%` }}
             />
           </div>
           {weeklyProgress >= 100 && (
-            <p className="text-xs text-accent font-medium mt-3">Goal achieved this week!</p>
+            <p className="text-sm text-accent font-medium mt-3" role="status">Goal achieved this week!</p>
           )}
         </div>
       )}
