@@ -33,7 +33,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - Static content, no backend dependency for content (all localStorage-first)
 - Auth via Clerk (`@clerk/react`) — Replit-managed, provisioned via `setupClerkWhitelabelAuth`
 - 40 topics, 200 MCQ quiz questions, daily challenge, full-text search + filters
-- Routes: `/`, `/topics`, `/topic/:slug`, `/learning-paths`, `/glossary`, `/resources`, `/progress`, `/map`, `/notes`, `/quiz/:slug`, `/search`, `/achievements`, `/bookmarks`, `/sign-in/*?`, `/sign-up/*?`
+- Routes: `/`, `/topics`, `/topic/:slug`, `/learning-paths`, `/glossary`, `/resources`, `/progress`, `/map`, `/notes`, `/quiz/:slug`, `/search`, `/achievements`, `/bookmarks`, `/profile`, `/sign-in/*?`, `/sign-up/*?`
 - localStorage keys: `genai-learn:completed`, `genai-learn:theme`, `genai-learn:recent`, `genai-learn:streak`, `genai-learn:last-date`, `genai-learn:best-streak`, `genai-learn:prefs`, `genai-learn:highlights`, `genai-learn:quiz-scores`, `genai-learn:daily-challenge`, `genai-learn:bookmarks`, `genai-learn:srs`, `genai-learn:achievements`
 - Phase 2 features: Achievement system (24 badges, 4 categories, rarity tiers), Bookmarks (save/reading list), Spaced Repetition (SRS scheduling for completed topics, due-for-review widget on Home), Voice Reader (Web Speech API in TopicDetail sidebar), Social Sharing (ShareModal with copy/Web Share API), Export Progress (JSON download), Prerequisite lock indicators on Topics page
 - Context providers order: ClerkProvider → AppProvider → AchievementsProvider → PrefsProvider

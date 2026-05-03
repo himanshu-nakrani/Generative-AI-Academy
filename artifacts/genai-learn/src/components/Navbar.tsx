@@ -73,6 +73,12 @@ function UserMenu() {
                   Bookmarks
                 </div>
               </Link>
+              <Link href="/profile" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  Profile
+                </div>
+              </Link>
               <button
                 onClick={() => {
                   setOpen(false);
