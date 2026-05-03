@@ -23,6 +23,8 @@ import NotFound from "@/pages/not-found";
 import Achievements from "@/pages/Achievements";
 import Bookmarks from "@/pages/Bookmarks";
 import Profile from "@/pages/Profile";
+import Streaks from "@/pages/Streaks";
+import QuizStats from "@/pages/QuizStats";
 import { AchievementsProvider } from "@/context/AchievementsContext";
 import { AchievementToastManager } from "@/components/AchievementToast";
 
@@ -164,6 +166,8 @@ function Router() {
           <Route path="/achievements"   component={Achievements} />
           <Route path="/bookmarks"      component={Bookmarks} />
           <Route path="/profile"        component={Profile} />
+          <Route path="/streaks"        component={Streaks} />
+          <Route path="/quiz-stats"     component={QuizStats} />
           <Route path="/sign-in/*?"     component={SignInPage} />
           <Route path="/sign-up/*?"     component={SignUpPage} />
           <Route                        component={NotFound} />

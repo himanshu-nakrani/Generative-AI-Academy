@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import {
   Menu, X, Flame, BarChart3, Network, Highlighter, Search,
-  LogIn, LogOut, User, ChevronDown, Bookmark, Trophy,
+  LogIn, LogOut, User, ChevronDown, Bookmark, Trophy, Calendar,
 } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
@@ -59,6 +59,18 @@ function UserMenu() {
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
                   <BarChart3 className="w-4 h-4 text-muted-foreground" />
                   My Progress
+                </div>
+              </Link>
+              <Link href="/streaks" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <Flame className="w-4 h-4 text-muted-foreground" />
+                  Streaks
+                </div>
+              </Link>
+              <Link href="/quiz-stats" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                  Quiz Stats
                 </div>
               </Link>
               <Link href="/achievements" onClick={() => setOpen(false)}>
@@ -151,6 +163,12 @@ export default function Navbar() {
                 location === "/search" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}>
               <Search className="w-3.5 h-3.5" />Search
+            </Link>
+            <Link href="/streaks"
+              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
+                location === "/streaks" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}>
+              <Flame className="w-3.5 h-3.5" />Streaks
             </Link>
           </div>
 

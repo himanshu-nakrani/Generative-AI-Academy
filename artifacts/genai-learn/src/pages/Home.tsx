@@ -12,6 +12,7 @@ import { loadDailyRecord, saveDailyRecord } from "@/hooks/useQuizScores";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useApp } from "@/context/AppContext";
 import { getDueReviews } from "@/hooks/useSpacedRepetition";
+import { SmartRecommendations } from "@/components/SmartRecommendations";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
