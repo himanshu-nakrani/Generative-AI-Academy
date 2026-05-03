@@ -2,6 +2,9 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/genai-vibes/CleanEditorial.tsx": () => import("../components/mockups/genai-vibes/CleanEditorial.tsx"),
+  "./components/mockups/genai-vibes/NeonPulse.tsx": () => import("../components/mockups/genai-vibes/NeonPulse.tsx"),
+  "./components/mockups/genai-vibes/PremiumDark.tsx": () => import("../components/mockups/genai-vibes/PremiumDark.tsx"),
   "./components/mockups/genai-vibes/TerminalHacker.tsx": () => import("../components/mockups/genai-vibes/TerminalHacker.tsx"),
-  "./components/mockups/genai-vibes/WarmScholar.tsx": () => import("../components/mockups/genai-vibes/WarmScholar.tsx")
+  "./components/mockups/genai-vibes/WarmScholar.tsx": () => import("../components/mockups/genai-vibes/WarmScholar.tsx"),
+  "./components/mockups/genai-vibes/ZenMinimalist.tsx": () => import("../components/mockups/genai-vibes/ZenMinimalist.tsx")
 };
