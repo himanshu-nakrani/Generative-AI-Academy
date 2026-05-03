@@ -1608,12 +1608,6 @@ export const interactiveRegistry: Record<string, React.ComponentType> = {
 
 export function InteractiveDiagram({ id }: { id: string }) {
   const Component = interactiveRegistry[id];
-  if (!Component) {
-    return (
-      <div className="my-8 p-4 rounded-xl border border-border bg-muted/50 text-center text-sm text-muted-foreground">
-        Interactive diagram "{id}" not found
-      </div>
-    );
-  }
+  if (!Component) return null;
   return <Component />;
 }
