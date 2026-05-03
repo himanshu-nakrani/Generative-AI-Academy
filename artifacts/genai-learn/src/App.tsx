@@ -15,6 +15,7 @@ import Progress from "@/pages/Progress";
 import Map from "@/pages/Map";
 import Notes from "@/pages/Notes";
 import Quiz from "@/pages/Quiz";
+import Search from "@/pages/Search";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ function Router() {
           <Route path="/map"            component={Map} />
           <Route path="/notes"          component={Notes} />
           <Route path="/quiz/:slug"     component={Quiz} />
+          <Route path="/search"         component={Search} />
           <Route                        component={NotFound} />
         </Switch>
       </main>

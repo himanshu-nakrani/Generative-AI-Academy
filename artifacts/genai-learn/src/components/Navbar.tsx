@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
-import { Menu, X, Sun, Moon, Flame, BarChart3, Network, Highlighter } from "lucide-react";
+import { Menu, X, Sun, Moon, Flame, BarChart3, Network, Highlighter, Search } from "lucide-react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 
@@ -58,6 +58,12 @@ export default function Navbar() {
                 location === "/notes" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}>
               <Highlighter className="w-3.5 h-3.5" />Notes
+            </Link>
+            <Link href="/search"
+              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
+                location === "/search" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}>
+              <Search className="w-3.5 h-3.5" />Search
             </Link>
           </div>
 
