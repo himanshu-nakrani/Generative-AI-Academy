@@ -178,33 +178,9 @@
 @layer base {
   * { @apply border-border; }
   
-  /* Typography baseline - 16px base with 1.6 line height for body text */
-  html {
-    font-size: 100%; /* 16px default */
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-  
   body { 
     @apply font-sans antialiased bg-background text-foreground;
-    line-height: 1.6;
-    letter-spacing: -0.01em;
   }
-  
-  /* Minimum font sizes for readability */
-  p, li, span, label { 
-    font-size: max(0.875rem, 14px); /* Never smaller than 14px */
-    line-height: 1.65;
-  }
-  
-  /* Headings with proper hierarchy */
-  h1 { @apply text-3xl sm:text-4xl font-bold tracking-tight; line-height: 1.2; }
-  h2 { @apply text-2xl sm:text-3xl font-semibold tracking-tight; line-height: 1.25; }
-  h3 { @apply text-xl sm:text-2xl font-semibold; line-height: 1.3; }
-  h4 { @apply text-lg font-medium; line-height: 1.4; }
-  
-  /* Links */
-  a { text-underline-offset: 3px; }
   
   ::selection { background: hsl(var(--accent) / 0.25); }
   
@@ -233,14 +209,6 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
-    }
-  }
-  
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    :root {
-      --border: 20 14% 30%;
-      --muted-foreground: 20 10% 28%;
     }
   }
 }
@@ -274,19 +242,6 @@
 .prose-content p {
   color: hsl(var(--foreground));
   line-height: 1.85;
-  font-size: 1rem; /* 16px minimum for body text */
-  max-width: 70ch; /* Optimal reading width */
-}
-.prose-content h1, .prose-content h2, .prose-content h3 {
-  color: hsl(var(--foreground));
-  font-family: 'Inter', sans-serif;
-}
-.prose-content ul, .prose-content ol {
-  font-size: 1rem;
-  line-height: 1.8;
-}
-.prose-content li {
-  margin-block: 0.5em;
 }
 
 /* ── Callout boxes ────────────────────────────────────────── */
@@ -389,12 +344,6 @@
     min-width: 44px;
   }
   
-  /* Allow smaller inline elements when needed */
-  .touch-target-sm {
-    min-height: 36px;
-    min-width: 36px;
-  }
-  
   /* Icon-only buttons in nav still need proper sizing */
   button:has(> svg:only-child) {
     display: inline-flex;
@@ -402,32 +351,6 @@
     justify-content: center;
     min-height: 44px;
     min-width: 44px;
-  }
-  
-  /* Proper spacing for clickable list items */
-  [role="listitem"] a,
-  [role="menuitem"] {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-}
-
-/* ── Mobile-specific improvements ─────────────────────────── */
-@media (max-width: 640px) {
-  /* Larger text on mobile for readability */
-  body {
-    font-size: 1rem;
-  }
-  
-  /* Increase line height on small screens */
-  p, li {
-    line-height: 1.75;
-  }
-  
-  /* Ensure adequate spacing between tap targets */
-  .space-y-2 > * + * {
-    margin-top: 0.75rem;
   }
 }
 
@@ -444,24 +367,7 @@
   border-width: 0;
 }
 
-/* Allow sr-only content to be focusable */
-.sr-only-focusable:focus,
-.sr-only-focusable:active {
-  position: static;
-  width: auto;
-  height: auto;
-  padding: inherit;
-  margin: inherit;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
-}
-
 /* ── Utilities ────────────────────────────────────────────── */
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button { @apply hidden; }
-  
-  /* Text balance for headings */
-  .text-balance { text-wrap: balance; }
-  .text-pretty { text-wrap: pretty; }
 }

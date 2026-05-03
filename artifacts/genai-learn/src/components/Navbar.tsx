@@ -326,9 +326,8 @@ export default function Navbar() {
               <MobileSignOut onClose={() => setMobileOpen(false)} />
             </Show>
           </div>
-        </div>
+        </nav>
       )}
-    </nav>
   );
 }
 
