@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
-import { CheckCircle2, ZoomIn, ZoomOut, Maximize2, Info } from "lucide-react";
+import { CheckCircle2, ZoomIn, ZoomOut, Maximize2, Info, X, Filter } from "lucide-react";
 import { topics, categories, categoryColors, type Category } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 
@@ -73,6 +73,31 @@ export default function Map() {
   const [hovered, setHovered] = useState<string | null>(null);
   const hoveredTopic = hovered ? topics.find(t => t.slug === hovered) : null;
 
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleCategories, setVisibleCategories] = useState<Set<Category>>(new Set(categories));
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filter topics
+  const filteredTopics = topics.filter(t => 
+    visibleCategories.has(t.category) &&
+    (searchQuery === "" || t.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  const filteredCount = filteredTopics.filter(t => isComplete(t.slug)).length;
+  const completionPercent = filteredTopics.length > 0 
+    ? Math.round((filteredCount / filteredTopics.length) * 100)
+    : 0;
+
+  const toggleCategory = (cat: Category) => {
+    const newSet = new Set(visibleCategories);
+    if (newSet.has(cat)) {
+      newSet.delete(cat);
+    } else {
+      newSet.add(cat);
+    }
+    setVisibleCategories(newSet);
+  };
+
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const factor = e.deltaY > 0 ? 0.92 : 1.09;
@@ -95,32 +120,98 @@ export default function Map() {
 
   const resetView = () => { setTx(0); setTy(0); setScale(0.85); };
 
-  // Edges for related topics
-  const edges = topics.flatMap(t =>
+  // Edges for related topics (only show edges between visible topics)
+  const edges = filteredTopics.flatMap(t =>
     t.relatedSlugs
-      .filter(r => r > t.slug) // avoid duplicate edges
+      .filter(r => r > t.slug && filteredTopics.some(ft => ft.slug === r))
       .map(r => ({ from: t.slug, to: r }))
   ).filter(e => LAYOUT.nodes[e.from] && LAYOUT.nodes[e.to]);
 
   return (
     <div className="h-[calc(100vh-56px)] flex flex-col bg-background">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-border bg-card/80 backdrop-blur-sm">
-        <div>
-          <h1 className="text-sm font-semibold">Concept Map</h1>
-          <p className="text-xs text-muted-foreground">{completedCount}/{topics.length} topics completed — click any node to open</p>
+      <div className="flex-shrink-0 border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-5 py-3">
+          <div className="flex-1">
+            <h1 className="text-sm font-semibold">Concept Map</h1>
+            <p className="text-xs text-muted-foreground">
+              {filteredCount}/{filteredTopics.length} completed {completionPercent > 0 && `(${completionPercent}%)`} · {completedCount}/{topics.length} total
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowFilters(!showFilters)} 
+              className={`p-1.5 rounded border transition-colors ${showFilters ? 'bg-primary/10 border-primary text-primary' : 'border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground'}`}
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+            <button onClick={() => setScale(s => Math.min(2.5, s * 1.15))} className="p-1.5 rounded border border-border bg-card hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button onClick={() => setScale(s => Math.max(0.4, s * 0.87))} className="p-1.5 rounded border border-border bg-card hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <button onClick={resetView} className="p-1.5 rounded border border-border bg-card hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setScale(s => Math.min(2.5, s * 1.15))} className="p-1.5 rounded border border-border bg-card hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <button onClick={() => setScale(s => Math.max(0.4, s * 0.87))} className="p-1.5 rounded border border-border bg-card hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <button onClick={resetView} className="p-1.5 rounded border border-border bg-card hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-            <Maximize2 className="w-4 h-4" />
-          </button>
-        </div>
+
+        {/* Search + Filter Panel */}
+        {showFilters && (
+          <div className="px-5 py-3 border-t border-border bg-muted/30 space-y-3">
+            {/* Search */}
+            <div>
+              <input
+                type="text"
+                placeholder="Search topics..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-3 py-1.5 text-sm rounded border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
+              />
+            </div>
+            {/* Category filter */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Categories</p>
+              <div className="flex flex-wrap gap-2">
+                {(categories as Category[]).map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                      visibleCategories.has(cat)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted text-muted-foreground border-border hover:border-muted-foreground'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Quick actions */}
+            <div className="flex gap-2 pt-2 border-t border-border">
+              <button
+                onClick={() => setVisibleCategories(new Set(categories))}
+                className="text-xs px-2 py-1 rounded text-primary hover:bg-primary/10 transition-colors"
+              >
+                Show All
+              </button>
+              <button
+                onClick={() => setVisibleCategories(new Set())}
+                className="text-xs px-2 py-1 rounded text-muted-foreground hover:bg-muted transition-colors"
+              >
+                Hide All
+              </button>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-xs px-2 py-1 rounded text-muted-foreground hover:bg-muted transition-colors"
+              >
+                Clear Search
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Canvas */}
@@ -153,10 +244,11 @@ export default function Map() {
 
             {/* ── Category hub backgrounds (convex hulls approximated with circles) ── */}
             {(categories as Category[]).map(cat => {
+              if (!visibleCategories.has(cat)) return null;
               const hub = LAYOUT.hubs[cat];
               const col = CAT_COLORS[cat];
               return (
-                <g key={cat}>
+                <g key={cat} style={{ transition: "opacity 200ms" }}>
                   <circle cx={hub.x} cy={hub.y} r={TOPIC_R + NODE_R + 12}
                     style={{ fill: col.fill }} opacity={0.5} />
                 </g>
@@ -165,10 +257,11 @@ export default function Map() {
 
             {/* ── Category hub labels ── */}
             {(categories as Category[]).map(cat => {
+              if (!visibleCategories.has(cat)) return null;
               const hub = LAYOUT.hubs[cat];
               const col = CAT_COLORS[cat];
               return (
-                <g key={`hub-${cat}`}>
+                <g key={`hub-${cat}`} style={{ transition: "opacity 200ms" }}>
                   <circle cx={hub.x} cy={hub.y} r={HUB_RAD}
                     style={{ fill: col.fill, stroke: col.stroke }} strokeWidth={1.5} />
                   <text x={hub.x} y={hub.y} textAnchor="middle" dominantBaseline="middle"
@@ -183,7 +276,7 @@ export default function Map() {
             })}
 
             {/* ── Topic nodes ── */}
-            {topics.map(t => {
+            {filteredTopics.map(t => {
               const pos = LAYOUT.nodes[t.slug];
               if (!pos) return null;
               const done = isComplete(t.slug);
@@ -194,7 +287,7 @@ export default function Map() {
                   onMouseEnter={() => setHovered(t.slug)}
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => navigate(`/topic/${t.slug}`)}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", transition: "opacity 200ms" }}
                 >
                   {/* Hover ring */}
                   {isHov && (
@@ -206,19 +299,20 @@ export default function Map() {
                     style={{
                       fill: done ? col.stroke : "hsl(var(--card))",
                       stroke: col.stroke,
+                      transition: "all 200ms",
                     }}
                     strokeWidth={done ? 0 : 1.5}
                   />
                   {/* Checkmark for done */}
                   {done && (
                     <text x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle"
-                      fontSize={10} style={{ fill: "white", pointerEvents: "none" }}>✓</text>
+                      fontSize={10} style={{ fill: "white", pointerEvents: "none", fontWeight: 700 }}>✓</text>
                   )}
                   {/* Label */}
                   <text
                     x={pos.x} y={pos.y + NODE_R + 10}
                     textAnchor="middle" fontSize={8.5} fontWeight={isHov ? 600 : 400}
-                    style={{ fill: isHov ? col.text : "hsl(var(--muted-foreground))", fontFamily: "var(--app-font-sans)", pointerEvents: "none" }}
+                    style={{ fill: isHov ? col.text : "hsl(var(--muted-foreground))", fontFamily: "var(--app-font-sans)", pointerEvents: "none", transition: "all 200ms" }}
                   >
                     {t.title.length > 18 ? t.title.slice(0, 16) + "…" : t.title}
                   </text>
