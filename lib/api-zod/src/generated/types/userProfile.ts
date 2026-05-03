@@ -11,6 +11,7 @@ export interface UserProfile {
   email: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  teamName?: string | null;
   completedCount: number;
   currentStreak: number;
   bestStreak: number;

@@ -84,6 +84,7 @@ export const GetLeaderboardResponse = zod.object({
       userId: zod.string(),
       displayName: zod.string().nullish(),
       avatarUrl: zod.string().nullish(),
+      teamName: zod.string().nullish(),
       completedCount: zod.number(),
       currentStreak: zod.number(),
       bestStreak: zod.number(),
@@ -101,6 +102,7 @@ export const GetMyProfileResponse = zod.object({
   email: zod.string(),
   displayName: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
+  teamName: zod.string().nullish(),
   completedCount: zod.number(),
   currentStreak: zod.number(),
   bestStreak: zod.number(),
@@ -112,6 +114,7 @@ export const GetMyProfileResponse = zod.object({
  */
 export const UpdateMyProfileBody = zod.object({
   displayName: zod.string().nullish(),
+  teamName: zod.string().nullish(),
 });
 
 export const UpdateMyProfileResponse = zod.object({
@@ -119,6 +122,7 @@ export const UpdateMyProfileResponse = zod.object({
   email: zod.string(),
   displayName: zod.string().nullish(),
   avatarUrl: zod.string().nullish(),
+  teamName: zod.string().nullish(),
   completedCount: zod.number(),
   currentStreak: zod.number(),
   bestStreak: zod.number(),

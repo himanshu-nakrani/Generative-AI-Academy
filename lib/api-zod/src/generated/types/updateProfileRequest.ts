@@ -8,4 +8,5 @@
 
 export interface UpdateProfileRequest {
   displayName?: string | null;
+  teamName?: string | null;
 }

@@ -3,13 +3,14 @@ import { useState } from "react";
 import {
   Menu, X, Flame, BarChart3, Network, Highlighter, Search,
   LogIn, LogOut, User, ChevronDown, Bookmark, Trophy, Calendar,
-  Sun, Moon, HelpCircle,
+  Sun, Moon, HelpCircle, Zap,
 } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 import { useAchievements } from "@/context/AchievementsContext";
 import { useTheme } from "@/hooks/useTheme";
+import { useXP } from "@/hooks/useXP";
 
 const navLinks = [
   { href: "/topics",         label: "Topics" },
@@ -70,6 +71,12 @@ function UserMenu() {
                   Streaks
                 </div>
               </Link>
+              <Link href="/analytics" onClick={() => setOpen(false)}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                  <BarChart3 className="w-4 h-4 text-amber-500" />
+                  Analytics
+                </div>
+              </Link>
               <Link href="/quiz-stats" onClick={() => setOpen(false)}>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
                   <BarChart3 className="w-4 h-4 text-muted-foreground" />
@@ -118,6 +125,7 @@ export default function Navbar() {
   const { completedCount, streak } = useApp();
   const { earnedCount, newlyEarned } = useAchievements();
   const { theme, toggleTheme } = useTheme();
+  const { level, levelName, levelColor } = useXP();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
@@ -191,6 +199,13 @@ export default function Navbar() {
                 </span>
               </Link>
             )}
+
+            {/* XP / Level badge */}
+            <Link href="/analytics">
+              <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-semibold bg-muted hover:bg-muted/80 transition-colors tabular-nums ${levelColor}`}>
+                <Zap className="w-3 h-3" />Lv{level}
+              </span>
+            </Link>
 
             {/* Achievements badge */}
             <Link href="/achievements" className="relative">

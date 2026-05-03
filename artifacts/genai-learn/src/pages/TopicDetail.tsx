@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams } from "wouter";
 import {
   ArrowLeft, ArrowRight, Clock, BookOpen, ChevronRight,
   Copy, Check, ExternalLink, FileText, Globe, MessageSquare,
   Video, BookMarked, CheckCircle2, Circle, Keyboard, X, List,
   Play, Loader2, Terminal, Highlighter, SlidersHorizontal, Bookmark,
+  Timer, Maximize2,
 } from "lucide-react";
 import { getTopicBySlug, topics, categoryColors, difficultyColors, type Reference } from "@/data/topics";
 import { quizzes } from "@/data/quizzes";
@@ -438,6 +440,205 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* ── KeyTakeaways ────────────────────────────────────────── */
+function KeyTakeaways({ sections }: { sections: { title: string; content: string }[] }) {
+  const [open, setOpen] = useState(true);
+
+  const takeaways = sections.map(s => {
+    const first = s.content.split(/\.\s+/)[0].trim();
+    return first.length > 200 ? first.slice(0, 197) + "…" : first + ".";
+  });
+
+  return (
+    <div className="mb-8 rounded-md border border-primary/20 bg-primary/4 fade-up-2">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+      >
+        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary/80">
+          <span>⚡</span>Key Takeaways
+        </span>
+        <span className={`text-muted-foreground/60 text-xs transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+      </button>
+      {open && (
+        <ul className="px-4 pb-4 space-y-2">
+          {takeaways.map((t, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold mt-0.5">{i + 1}</span>
+              <span>{t}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/* ── FocusOverlay ────────────────────────────────────────── */
+interface FocusOverlayProps {
+  topic: NonNullable<ReturnType<typeof getTopicBySlug>>;
+  slug: string;
+  contentStyle: React.CSSProperties;
+  topicHighlights: import("@/hooks/useHighlights").Highlight[];
+  isComplete: boolean;
+  onExit: () => void;
+  onMarkComplete: () => void;
+}
+
+function PomodoroTimer() {
+  const WORK = 25 * 60;
+  const [secs, setSecs] = useState(WORK);
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (running) {
+      intervalRef.current = setInterval(() => {
+        setSecs(s => {
+          if (s <= 1) { setRunning(false); return WORK; }
+          return s - 1;
+        });
+      }, 1000);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [running]);
+
+  const mm = String(Math.floor(secs / 60)).padStart(2, "0");
+  const ss = String(secs % 60).padStart(2, "0");
+  const pct = ((WORK - secs) / WORK) * 100;
+
+  return (
+    <div className="flex items-center gap-2 select-none">
+      <div className="relative w-8 h-8">
+        <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/10" />
+          <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray={`${2 * Math.PI * 13}`}
+            strokeDashoffset={`${2 * Math.PI * 13 * (1 - pct / 100)}`}
+            className="text-primary transition-all" strokeLinecap="round" />
+        </svg>
+        <button onClick={() => setRunning(r => !r)}
+          className="absolute inset-0 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+          {running
+            ? <span className="text-[9px] font-bold">❚❚</span>
+            : <Play className="w-3 h-3 fill-current" />}
+        </button>
+      </div>
+      <span className="text-xs font-mono tabular-nums text-white/70">{mm}:{ss}</span>
+    </div>
+  );
+}
+
+function FocusOverlay({ topic, slug, contentStyle, topicHighlights, isComplete, onExit, onMarkComplete }: FocusOverlayProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [reachedEnd, setReachedEnd] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const fn = () => {
+      const max = el.scrollHeight - el.clientHeight;
+      const pct = max > 0 ? (el.scrollTop / max) * 100 : 0;
+      setProgress(pct);
+      if (pct >= 90 && !isComplete) setReachedEnd(true);
+    };
+    el.addEventListener("scroll", fn, { passive: true });
+    return () => el.removeEventListener("scroll", fn);
+  }, [isComplete]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onExit();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onExit]);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[300] bg-background flex flex-col overflow-hidden">
+      {/* Progress bar */}
+      <div className="absolute top-0 left-0 h-0.5 bg-primary transition-all duration-150 z-10"
+        style={{ width: `${progress}%` }} />
+
+      {/* Top bar */}
+      <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-border/40 bg-background/95 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-primary/80 uppercase tracking-wider">
+            <Maximize2 className="w-3.5 h-3.5" />Focus Mode
+          </span>
+          <span className="hidden sm:block text-xs text-muted-foreground/60">·</span>
+          <span className="hidden sm:block text-xs text-muted-foreground/70 truncate max-w-xs">{topic.title}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <PomodoroTimer />
+          <button onClick={onExit}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted">
+            <X className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Exit</span>
+            <kbd className="hidden sm:inline ml-1 text-muted-foreground/40 font-mono">esc</kbd>
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-12">
+
+          {/* Article header */}
+          <header className="mb-10">
+            <div className="flex flex-wrap items-center gap-2 mb-4 text-xs text-muted-foreground">
+              <span className={`px-2 py-0.5 rounded-full font-medium ${categoryColors[topic.category]}`}>{topic.category}</span>
+              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{topic.readTime} min read</span>
+              <span>{topic.sections.length} sections</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold leading-tight mb-4">{topic.title}</h1>
+            <p className="text-base text-muted-foreground leading-relaxed">{topic.description}</p>
+          </header>
+
+          {/* Sections */}
+          <div className="space-y-14" style={contentStyle}>
+            {topic.sections.map((section, i) => (
+              <div key={i} id={`focus-section-${i}`} className="scroll-mt-10">
+                <div className="flex items-baseline gap-3 mb-4">
+                  <span className="text-xs font-mono text-muted-foreground/40 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                  <h2 className="text-xl font-semibold">{section.title}</h2>
+                </div>
+                <div className="pl-8 space-y-4">
+                  {section.content.split("\n\n").map((para, j) => (
+                    <ContentParagraph key={j} text={para} highlights={topicHighlights} />
+                  ))}
+                  {section.code && <CodeBlock code={section.code} />}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Auto-complete nudge */}
+          {reachedEnd && !isComplete && (
+            <div className="mt-16 p-5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-center fade-up">
+              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-3">You've read the whole article!</p>
+              <button onClick={() => { onMarkComplete(); setReachedEnd(false); }}
+                className="flex items-center gap-2 mx-auto px-5 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors">
+                <CheckCircle2 className="w-4 h-4" />Mark as complete
+              </button>
+            </div>
+          )}
+          {isComplete && (
+            <div className="mt-16 flex items-center justify-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 pb-8">
+              <CheckCircle2 className="w-4 h-4" />Topic completed
+            </div>
+          )}
+
+          <div className="h-20" />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 /* ── MobileTOC ───────────────────────────────────────────── */
 function MobileTOC({
   sections, activeSection, onClose,
@@ -473,7 +674,7 @@ function MobileTOC({
 export default function TopicDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { isComplete, toggleComplete, recordVisit } = useApp();
-  const { fontSize, lineHeight, focusMode, wideColumn } = usePrefs();
+  const { fontSize, lineHeight, focusMode, wideColumn, toggleFocusMode } = usePrefs();
   const { topicHighlights, add: addHighlight } = useHighlights(slug);
   const { getScore } = useQuizScores();
   const { isBookmarked, toggleBookmark } = useBookmarks();
@@ -492,7 +693,14 @@ export default function TopicDetail() {
   const articleRef  = useRef<HTMLDivElement>(null);
   const topic       = getTopicBySlug(slug);
 
-  useEffect(() => { if (slug) recordVisit(slug); }, [slug, recordVisit]);
+  useEffect(() => {
+    if (slug && topic) {
+      recordVisit(slug);
+      window.dispatchEvent(new CustomEvent("genai:topic-visit", {
+        detail: { slug, category: topic.category },
+      }));
+    }
+  }, [slug, topic?.category, recordVisit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scrollspy
   useEffect(() => {
@@ -537,6 +745,18 @@ export default function TopicDetail() {
     onToggleShortcuts: () => setShowShortcuts(s => !s),
   });
 
+  // F key → toggle focus mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "f") { e.preventDefault(); toggleFocusMode(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [toggleFocusMode]);
+
   if (!topic) {
     return (
       <div className="min-h-screen flex items-center justify-center px-5">
@@ -565,6 +785,17 @@ export default function TopicDetail() {
   return (
     <>
       <ReadingProgress />
+      {focusMode && (
+        <FocusOverlay
+          topic={topic}
+          slug={slug}
+          contentStyle={contentStyle}
+          topicHighlights={topicHighlights}
+          isComplete={complete}
+          onExit={toggleFocusMode}
+          onMarkComplete={() => { toggleComplete(slug); recordTopicRead(slug); recheckAchievements(); }}
+        />
+      )}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
       {showMobileTOC  && <MobileTOC sections={topic.sections} activeSection={activeSection} onClose={() => setShowMobileTOC(false)} />}
       {selToolbar     && (
@@ -639,6 +870,9 @@ export default function TopicDetail() {
 
               {/* Prerequisites */}
               <PrerequisitesBanner slug={slug} />
+
+              {/* Key Takeaways */}
+              <KeyTakeaways sections={topic.sections} />
 
               {/* Table of Contents */}
               <div className="mb-10 p-4 rounded-md border border-border bg-card/50 fade-up-2">

@@ -259,6 +259,9 @@ components:
         avatarUrl:
           type: string
           nullable: true
+        teamName:
+          type: string
+          nullable: true
         completedCount:
           type: integer
         currentStreak:
@@ -301,6 +304,9 @@ components:
         avatarUrl:
           type: string
           nullable: true
+        teamName:
+          type: string
+          nullable: true
         completedCount:
           type: integer
         currentStreak:
@@ -322,5 +328,8 @@ components:
       type: object
       properties:
         displayName:
+          type: string
+          nullable: true
+        teamName:
           type: string
           nullable: true

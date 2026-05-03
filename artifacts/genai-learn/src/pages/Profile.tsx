@@ -1,11 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/react";
-import { Mail, LogOut, Calendar, Award, BookOpen, Flame, Cloud, CloudOff, RefreshCw, Check, Trophy } from "lucide-react";
+import {
+  Mail, LogOut, Calendar, Award, BookOpen, Flame, Cloud, RefreshCw, Check,
+  Trophy, Edit2, X, Users, Zap,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useApp } from "@/context/AppContext";
 import { useAchievements } from "@/context/AchievementsContext";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useSyncToServer } from "@/hooks/useSyncToServer";
+import { useXP } from "@/hooks/useXP";
+import { useGetMyProfile, useUpdateMyProfile } from "@workspace/api-client-react";
+
+function BarChart({ className }: { className?: string }) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 20 20" className={className}>
+      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+    </svg>
+  );
+}
 
 export default function Profile() {
   const { user, isLoaded } = useUser();
@@ -14,16 +27,41 @@ export default function Profile() {
   const { earnedCount } = useAchievements();
   const { bookmarkCount } = useBookmarks();
   const { syncNow, lastSync } = useSyncToServer();
+  const { level, levelName, levelColor, totalXP, levelProgress, xpIntoLevel, xpForLevel } = useXP();
+
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
+  const [editingTeam, setEditingTeam] = useState(false);
+  const [teamInput, setTeamInput] = useState("");
+  const [teamSaved, setTeamSaved] = useState(false);
+
+  const { data: profile } = useGetMyProfile();
+  const { mutate: updateProfile, isPending: savingTeam } = useUpdateMyProfile();
+
+  useEffect(() => {
+    if (profile?.displayName !== undefined) {
+      setTeamInput(profile.teamName ?? "");
+    }
+  }, [profile]);
 
   const handleSync = async () => {
-    setIsSyncing(true);
-    setSyncDone(false);
+    setIsSyncing(true); setSyncDone(false);
     await syncNow();
-    setIsSyncing(false);
-    setSyncDone(true);
+    setIsSyncing(false); setSyncDone(true);
     setTimeout(() => setSyncDone(false), 3000);
+  };
+
+  const handleSaveTeam = () => {
+    updateProfile(
+      { data: { teamName: teamInput.trim() || null } },
+      {
+        onSuccess: () => {
+          setEditingTeam(false);
+          setTeamSaved(true);
+          setTimeout(() => setTeamSaved(false), 3000);
+        },
+      }
+    );
   };
 
   if (!isLoaded) {
@@ -80,10 +118,58 @@ export default function Profile() {
             )}
 
             <div className="flex-1">
-              <h1 className="text-3xl font-semibold text-foreground mb-1">{name}</h1>
-              <div className="flex items-center gap-2 text-muted-foreground mb-3">
+              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                <h1 className="text-3xl font-semibold text-foreground">{name}</h1>
+                <span className={`px-2 py-0.5 rounded-full bg-muted text-xs font-semibold ${levelColor}`}>
+                  Lv {level} · {levelName}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Mail className="w-4 h-4" />
-                <a href={`mailto:${email}`} className="hover:text-foreground transition-colors">{email}</a>
+                <a href={`mailto:${email}`} className="hover:text-foreground transition-colors text-sm">{email}</a>
+              </div>
+              {/* Team name */}
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                {editingTeam ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={teamInput}
+                      onChange={e => setTeamInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") handleSaveTeam(); if (e.key === "Escape") setEditingTeam(false); }}
+                      placeholder="Enter team name…"
+                      maxLength={40}
+                      className="text-sm px-2 py-0.5 rounded border border-border bg-background text-foreground w-44 focus:outline-none focus:ring-1 focus:ring-primary"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleSaveTeam}
+                      disabled={savingTeam}
+                      className="px-2 py-0.5 rounded bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 disabled:opacity-60"
+                    >
+                      {savingTeam ? "Saving…" : "Save"}
+                    </button>
+                    <button onClick={() => setEditingTeam(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {profile?.teamName
+                        ? <span className="text-foreground font-medium">{profile.teamName}</span>
+                        : <span className="italic">No team set</span>
+                      }
+                    </span>
+                    <button
+                      onClick={() => { setTeamInput(profile?.teamName ?? ""); setEditingTeam(true); }}
+                      className="text-xs text-muted-foreground/60 hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    {teamSaved && <span className="text-xs text-emerald-500">✓ Saved</span>}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 <Calendar className="w-4 h-4" />
@@ -106,29 +192,42 @@ export default function Profile() {
                   onClick={() => signOut()}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors text-sm font-medium"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
+                  <LogOut className="w-4 h-4" />Sign Out
                 </button>
               </div>
               {lastSync && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Last synced: {lastSync.toLocaleString()}
-                </p>
+                <p className="text-xs text-muted-foreground mt-2">Last synced: {lastSync.toLocaleString()}</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Sync Status Banner */}
-        <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3">
-          <Cloud className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-foreground">Cloud Sync Active</p>
-            <p className="text-xs text-muted-foreground">
-              Your progress, bookmarks, achievements, and streaks sync automatically every 5 minutes while signed in.
-              Your data is always available across devices.
-            </p>
+        {/* XP / Level Progress */}
+        <div className="mb-6 p-5 rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <h3 className="font-semibold text-sm">Level Progress</h3>
+            </div>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-muted ${levelColor}`}>
+              Level {level} · {levelName}
+            </span>
           </div>
+          <div className="mb-1.5">
+            <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-700"
+                style={{ width: `${levelProgress}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{xpIntoLevel.toLocaleString()} / {xpForLevel.toLocaleString()} XP</span>
+            <span>{totalXP.toLocaleString()} total XP</span>
+          </div>
+          <Link href="/analytics">
+            <p className="text-xs text-primary hover:underline mt-2">View full analytics →</p>
+          </Link>
         </div>
 
         {/* Stats Grid */}
@@ -186,6 +285,15 @@ export default function Profile() {
         <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick Links</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link href="/analytics">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
+                <Zap className="w-5 h-5 text-amber-500" />
+                <div>
+                  <p className="font-medium text-foreground">Analytics</p>
+                  <p className="text-xs text-muted-foreground">XP, levels, insights</p>
+                </div>
+              </div>
+            </Link>
             <Link href="/progress">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
                 <BarChart className="w-5 h-5 text-muted-foreground" />
@@ -213,28 +321,10 @@ export default function Profile() {
                 </div>
               </div>
             </Link>
-            <Link href="/bookmarks">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
-                <svg className="w-5 h-5 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                </svg>
-                <div>
-                  <p className="font-medium text-foreground">Bookmarks</p>
-                  <p className="text-xs text-muted-foreground">Saved reading list</p>
-                </div>
-              </div>
-            </Link>
           </div>
         </div>
+
       </div>
     </main>
-  );
-}
-
-function BarChart({ className }: { className?: string }) {
-  return (
-    <svg fill="currentColor" viewBox="0 0 20 20" className={className}>
-      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-    </svg>
   );
 }

@@ -44,6 +44,7 @@ export interface LeaderboardEntry {
   userId: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  teamName?: string | null;
   completedCount: number;
   currentStreak: number;
   bestStreak: number;
@@ -60,6 +61,7 @@ export interface UserProfile {
   email: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  teamName?: string | null;
   completedCount: number;
   currentStreak: number;
   bestStreak: number;
@@ -68,6 +70,7 @@ export interface UserProfile {
 
 export interface UpdateProfileRequest {
   displayName?: string | null;
+  teamName?: string | null;
 }
 
 export type GetLeaderboardParams = {

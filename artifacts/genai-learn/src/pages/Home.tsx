@@ -14,6 +14,7 @@ import { useApp } from "@/context/AppContext";
 import { getDueReviews } from "@/hooks/useSpacedRepetition";
 import { SmartRecommendations } from "@/components/SmartRecommendations";
 import { useWeeklyGoals } from "@/hooks/useWeeklyGoals";
+import { DailyQuestsWidget } from "@/components/DailyQuests";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -415,10 +416,11 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── Weekly Goals Widget ──────────────────────────────── */}
+      {/* ── Daily Quests ─────────────────────────────────────── */}
       {isReturning && (
         <section className="py-8 px-5 sm:px-8 border-b border-border">
           <div className="max-w-5xl mx-auto">
+            <DailyQuestsWidget />
             <WeeklyGoalsWidget />
           </div>
         </section>

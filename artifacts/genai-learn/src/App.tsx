@@ -30,6 +30,7 @@ import { AchievementsProvider } from "@/context/AchievementsContext";
 import { AchievementToastManager } from "@/components/AchievementToast";
 import { SyncProvider } from "@/components/SyncProvider";
 import Leaderboard from "@/pages/Leaderboard";
+import Analytics from "@/pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -183,6 +184,7 @@ function Router() {
           <Route path="/streaks"        component={Streaks} />
           <Route path="/quiz-stats"     component={QuizStats} />
           <Route path="/leaderboard"    component={Leaderboard} />
+          <Route path="/analytics"     component={Analytics} />
           <Route path="/sign-in/*?"     component={SignInPage} />
           <Route path="/sign-up/*?"     component={SignUpPage} />
           <Route                        component={NotFound} />

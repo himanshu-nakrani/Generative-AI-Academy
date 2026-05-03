@@ -32,6 +32,7 @@ router.get("/user/me", requireAuth, async (req, res) => {
     email:          user.email,
     displayName:    user.displayName ?? null,
     avatarUrl:      user.avatarUrl ?? null,
+    teamName:       user.teamName ?? null,
     completedCount: progressResult[0]?.count ?? 0,
     currentStreak:  streak?.currentStreak ?? 0,
     bestStreak:     streak?.bestStreak ?? 0,
@@ -53,6 +54,9 @@ router.patch("/user/me", requireAuth, async (req, res) => {
   const updates: Partial<typeof usersTable.$inferInsert> = { updatedAt: new Date() };
   if ("displayName" in parsed.data) {
     updates.displayName = parsed.data.displayName ?? null;
+  }
+  if ("teamName" in parsed.data) {
+    updates.teamName = parsed.data.teamName ?? null;
   }
 
   const updated = await db
@@ -80,6 +84,7 @@ router.patch("/user/me", requireAuth, async (req, res) => {
     email:          user.email,
     displayName:    user.displayName ?? null,
     avatarUrl:      user.avatarUrl ?? null,
+    teamName:       user.teamName ?? null,
     completedCount: progressResult[0]?.count ?? 0,
     currentStreak:  streakRows[0]?.currentStreak ?? 0,
     bestStreak:     streakRows[0]?.bestStreak ?? 0,

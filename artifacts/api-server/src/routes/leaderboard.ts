@@ -20,6 +20,7 @@ router.get("/leaderboard", async (req, res) => {
       userId:        usersTable.id,
       displayName:   usersTable.displayName,
       avatarUrl:     usersTable.avatarUrl,
+      teamName:      usersTable.teamName,
       completedCount: sql<number>`cast(count(${userProgressTable.topicSlug}) as int)`,
       currentStreak:  sql<number>`cast(coalesce(${userStreaksTable.currentStreak}, 0) as int)`,
       bestStreak:     sql<number>`cast(coalesce(${userStreaksTable.bestStreak}, 0) as int)`,
@@ -27,7 +28,7 @@ router.get("/leaderboard", async (req, res) => {
     .from(usersTable)
     .leftJoin(userProgressTable, eq(userProgressTable.userId, usersTable.id))
     .leftJoin(userStreaksTable,  eq(userStreaksTable.userId,  usersTable.id))
-    .groupBy(usersTable.id, userStreaksTable.currentStreak, userStreaksTable.bestStreak)
+    .groupBy(usersTable.id, userStreaksTable.currentStreak, userStreaksTable.bestStreak, usersTable.teamName)
     .orderBy(desc(sql`count(${userProgressTable.topicSlug})`))
     .limit(limit);
 
@@ -36,6 +37,7 @@ router.get("/leaderboard", async (req, res) => {
     userId:         row.userId,
     displayName:    row.displayName ?? null,
     avatarUrl:      row.avatarUrl ?? null,
+    teamName:       row.teamName ?? null,
     completedCount: row.completedCount,
     currentStreak:  row.currentStreak,
     bestStreak:     row.bestStreak,

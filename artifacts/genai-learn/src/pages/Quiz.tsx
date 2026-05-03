@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import {
-  ArrowLeft, CheckCircle2, XCircle, RotateCcw, Trophy, ChevronRight, BookOpen,
+  ArrowLeft, CheckCircle2, XCircle, RotateCcw, Trophy, ChevronRight, BookOpen, Timer, Zap,
 } from "lucide-react";
 import { getTopicBySlug } from "@/data/topics";
 import { quizzes } from "@/data/quizzes";
@@ -15,6 +15,70 @@ const optionRight = `${optionBase} border-emerald-400 bg-emerald-50 dark:bg-emer
 const optionWrong = `${optionBase} border-red-400 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 cursor-default`;
 const optionGhost = `${optionBase} border-border/50 bg-card/60 text-muted-foreground/60 cursor-default`;
 
+/* ── Mode Select Screen ──────────────────────────────────── */
+function ModeSelect({ onSelect }: { onSelect: (mode: "normal" | "timed") => void }) {
+  return (
+    <div className="min-h-screen py-20 px-5 flex items-center justify-center">
+      <div className="w-full max-w-sm text-center fade-up">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Choose Mode</p>
+        <h1 className="text-2xl font-bold mb-2">How do you want to play?</h1>
+        <p className="text-sm text-muted-foreground mb-8">Normal mode lets you take your time. Timed mode adds a 30-second countdown per question.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => onSelect("normal")}
+            className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-border bg-card hover:border-primary/40 hover:bg-primary/4 transition-all group"
+          >
+            <BookOpen className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div>
+              <p className="font-semibold text-foreground">Normal</p>
+              <p className="text-xs text-muted-foreground mt-0.5">No timer · Learn at your pace</p>
+            </div>
+          </button>
+          <button
+            onClick={() => onSelect("timed")}
+            className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-amber-400/40 bg-amber-50/30 dark:bg-amber-900/10 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/20 transition-all group"
+          >
+            <div className="relative">
+              <Timer className="w-7 h-7 text-amber-500" />
+              <Zap className="w-3 h-3 text-amber-500 absolute -top-1 -right-1" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">Timed</p>
+              <p className="text-xs text-muted-foreground mt-0.5">30s per question</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Countdown bar ───────────────────────────────────────── */
+function TimerBar({ timeLeft, total = 30 }: { timeLeft: number; total?: number }) {
+  const pct    = (timeLeft / total) * 100;
+  const urgent = timeLeft <= 8;
+  return (
+    <div className="mb-5 fade-up">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
+          <Timer className={`w-3.5 h-3.5 ${urgent ? "text-red-500 animate-pulse" : "text-amber-500"}`} />
+          <span className={`text-xs font-mono font-semibold tabular-nums ${urgent ? "text-red-500" : "text-amber-500"}`}>
+            {timeLeft}s
+          </span>
+        </div>
+        <span className="text-xs text-muted-foreground">Time remaining</span>
+      </div>
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-1000 ease-linear ${urgent ? "bg-red-500" : "bg-amber-500"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Quiz ───────────────────────────────────────────── */
 export default function Quiz() {
   const { slug } = useParams<{ slug: string }>();
   const [, navigate] = useLocation();
@@ -22,11 +86,35 @@ export default function Quiz() {
   const questions = quizzes[slug] ?? [];
   const { getScore, saveScore } = useQuizScores();
 
+  const [mode,     setMode]     = useState<"normal" | "timed" | null>(null);
   const [current,  setCurrent]  = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [answers,  setAnswers]  = useState<(number | null)[]>(Array(questions.length).fill(null));
   const [done,     setDone]     = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [timedOut, setTimedOut] = useState(false);
+
+  // Reset timer when moving to a new question in timed mode
+  useEffect(() => {
+    if (mode === "timed") { setTimeLeft(30); setTimedOut(false); }
+  }, [current, mode]);
+
+  // Countdown logic
+  useEffect(() => {
+    if (mode !== "timed" || revealed || done) return;
+    if (timeLeft <= 0) {
+      // Auto-submit on timeout
+      const next = [...answers];
+      next[current] = selected; // null means unanswered → wrong
+      setAnswers(next);
+      setRevealed(true);
+      setTimedOut(true);
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [timeLeft, mode, revealed, done, current, answers, selected]);
 
   if (!topic || questions.length === 0) {
     return (
@@ -41,6 +129,9 @@ export default function Quiz() {
     );
   }
 
+  // Show mode selection first
+  if (mode === null) return <ModeSelect onSelect={setMode} />;
+
   const q       = questions[current];
   const correct = answers.filter((a, i) => a === questions[i].answer).length;
 
@@ -49,34 +140,37 @@ export default function Quiz() {
     setSelected(idx);
   };
 
-  const submit = () => {
+  const submit = useCallback(() => {
     if (selected === null || revealed) return;
     const next = [...answers];
     next[current] = selected;
     setAnswers(next);
     setRevealed(true);
-  };
+  }, [selected, revealed, answers, current]);
 
   const advance = () => {
     if (current === questions.length - 1) {
-      const finalAnswers = [...answers];
-      finalAnswers[current] = selected!;
-      const finalCorrect = finalAnswers.filter((a, i) => a === questions[i].answer).length;
+      const finalAnswers  = [...answers];
+      finalAnswers[current] = selected !== null ? selected : answers[current];
+      const finalCorrect  = finalAnswers.filter((a, i) => a === questions[i].answer).length;
       saveScore(slug, { score: finalCorrect, total: questions.length, date: Date.now() });
+      // Fire quest event
+      window.dispatchEvent(new CustomEvent("genai:quiz-complete", {
+        detail: { slug, score: finalCorrect, total: questions.length },
+      }));
       setDone(true);
     } else {
       setCurrent(c => c + 1);
       setSelected(null);
       setRevealed(false);
+      setTimedOut(false);
     }
   };
 
   const retry = () => {
-    setCurrent(0);
-    setSelected(null);
-    setRevealed(false);
+    setCurrent(0); setSelected(null); setRevealed(false);
     setAnswers(Array(questions.length).fill(null));
-    setDone(false);
+    setDone(false); setMode(null); setTimeLeft(30); setTimedOut(false);
   };
 
   /* ── Score screen ─────────────────────────────────────── */
@@ -95,9 +189,7 @@ export default function Quiz() {
             }`}>
               {pct}%
             </div>
-            {pct === 100 && (
-              <Trophy className="absolute -top-1 -right-1 w-7 h-7 text-yellow-500" />
-            )}
+            {pct === 100 && <Trophy className="absolute -top-1 -right-1 w-7 h-7 text-yellow-500" />}
           </div>
 
           <h1 className="text-2xl font-bold mb-2">
@@ -106,6 +198,11 @@ export default function Quiz() {
           <p className="text-sm text-muted-foreground mb-1">
             {correct} of {questions.length} correct on <span className="font-medium">{topic.title}</span>
           </p>
+          {mode === "timed" && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-xs font-medium mb-2">
+              <Timer className="w-3 h-3" />Timed Mode
+            </div>
+          )}
           {improved && (
             <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">↑ Improved from {prev!.score}/{prev!.total}!</p>
           )}
@@ -162,9 +259,27 @@ export default function Quiz() {
 
         {/* Header */}
         <div className="mb-6 fade-up">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Knowledge Check</p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Knowledge Check</p>
+            {mode === "timed" && (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <Timer className="w-3 h-3" />Timed
+              </span>
+            )}
+          </div>
           <h1 className="text-xl font-bold">{topic.title}</h1>
         </div>
+
+        {/* Countdown timer (timed mode only) */}
+        {mode === "timed" && !revealed && !done && (
+          <TimerBar timeLeft={timeLeft} />
+        )}
+        {timedOut && revealed && (
+          <div className="mb-4 p-3 rounded-lg border border-red-400/30 bg-red-50/30 dark:bg-red-900/10 flex items-center gap-2">
+            <Timer className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-600 dark:text-red-400 font-medium">Time's up! Auto-submitted.</p>
+          </div>
+        )}
 
         {/* Progress dots */}
         <div className="flex items-center gap-1.5 mb-8 fade-up">
@@ -186,16 +301,16 @@ export default function Quiz() {
             {q.options.map((opt, idx) => {
               let cls = optionIdle;
               if (revealed) {
-                if (idx === q.answer)  cls = optionRight;
+                if (idx === q.answer)   cls = optionRight;
                 else if (idx === selected) cls = optionWrong;
-                else                   cls = optionGhost;
+                else                    cls = optionGhost;
               } else if (idx === selected) {
                 cls = `${optionBase} border-primary bg-primary/6 cursor-pointer`;
               }
               return (
                 <button key={idx} className={cls} onClick={() => choose(idx)}>
                   <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${
-                    revealed && idx === q.answer  ? "border-emerald-400 bg-emerald-400 text-white"
+                    revealed && idx === q.answer   ? "border-emerald-400 bg-emerald-400 text-white"
                     : revealed && idx === selected ? "border-red-400 bg-red-400 text-white"
                     : idx === selected             ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-muted"
@@ -212,14 +327,14 @@ export default function Quiz() {
         {/* Explanation */}
         {revealed && (
           <div className={`mb-6 p-4 rounded-lg border text-sm leading-relaxed fade-up ${
-            selected === q.answer
+            (selected !== null && selected === q.answer)
               ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-900/10"
               : "border-red-200 dark:border-red-800 bg-red-50/60 dark:bg-red-900/10"
           }`}>
             <div className="flex items-center gap-2 mb-1.5">
               {selected === q.answer
                 ? <><CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" /><span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Correct!</span></>
-                : <><XCircle className="w-4 h-4 text-red-500 flex-shrink-0" /><span className="text-xs font-semibold text-red-700 dark:text-red-400">Incorrect</span></>}
+                : <><XCircle className="w-4 h-4 text-red-500 flex-shrink-0" /><span className="text-xs font-semibold text-red-700 dark:text-red-400">{timedOut ? "Time's up!" : "Incorrect"}</span></>}
             </div>
             <p className="text-muted-foreground text-xs leading-relaxed">{q.explanation}</p>
           </div>
