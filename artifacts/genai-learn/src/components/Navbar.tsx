@@ -9,7 +9,6 @@ import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
 import { useApp } from "@/context/AppContext";
 import { useAchievements } from "@/context/AchievementsContext";
-import { useTheme } from "@/hooks/useTheme";
 import { useXP } from "@/hooks/useXP";
 
 const navLinks = [
@@ -122,9 +121,8 @@ function UserMenu() {
 export default function Navbar() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { completedCount, streak } = useApp();
+  const { completedCount, streak, dark, toggleDark } = useApp();
   const { earnedCount, newlyEarned } = useAchievements();
-  const { theme, toggleTheme } = useTheme();
   const { level, levelName, levelColor } = useXP();
 
   return (
@@ -230,11 +228,11 @@ export default function Navbar() {
 
             {/* Theme Toggle */}
             <button
-              onClick={toggleTheme}
+              onClick={toggleDark}
               className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              title={`Theme: ${theme}`}
+              title={`Theme: ${dark ? "dark" : "light"}`}
             >
-              {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : theme === "light" ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 opacity-60" />}
+              {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             </button>
 
             {/* Help / Shortcuts */}
