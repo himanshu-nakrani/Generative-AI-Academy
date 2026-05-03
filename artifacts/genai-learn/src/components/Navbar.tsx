@@ -113,7 +113,8 @@ export default function Navbar() {
   const { level } = useXP();
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+    <>
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="max-w-6xl mx-auto px-5 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -241,6 +242,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+    </nav>
 
       {/* Mobile menu */}
       {mobileOpen && (
@@ -328,6 +330,7 @@ export default function Navbar() {
           </div>
         </nav>
       )}
+    </>
   );
 }
 
