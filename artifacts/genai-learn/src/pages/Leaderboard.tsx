@@ -42,7 +42,7 @@ export default function Leaderboard() {
         </div>
 
         {/* Sign-in prompt */}
-        {!isSignedIn && (
+        {isSignedIn === false && (
           <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-foreground">Join the leaderboard</p>
@@ -105,7 +105,7 @@ export default function Leaderboard() {
         )}
 
         {/* Empty state */}
-        {!isLoading && !error && data?.entries.length === 0 && (
+        {!isLoading && !error && data?.entries?.length === 0 && (
           <div className="p-12 rounded-xl border border-border bg-card text-center">
             <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No entries yet</h3>
@@ -114,7 +114,7 @@ export default function Leaderboard() {
         )}
 
         {/* Filtered empty */}
-        {!isLoading && !error && data && data.entries.length > 0 && entries.length === 0 && (
+        {!isLoading && !error && data && (data.entries?.length ?? 0) > 0 && entries.length === 0 && (
           <div className="p-8 rounded-xl border border-border bg-card text-center">
             <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground text-sm">No users match team "{teamFilter}"</p>
@@ -193,7 +193,7 @@ export default function Leaderboard() {
         )}
 
         {/* Current user rank callout (if not in top N) */}
-        {isSignedIn && data?.currentUserRank && data.entries.every((e) => !e.isCurrentUser) && (
+        {isSignedIn === true && data?.currentUserRank && data.entries?.every((e) => !e.isCurrentUser) && (
           <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between gap-4">
             <p className="text-sm text-foreground">
               Your current rank: <span className="font-semibold text-primary">#{data.currentUserRank}</span>
@@ -205,7 +205,7 @@ export default function Leaderboard() {
         {/* Footer note */}
         <p className="mt-6 text-xs text-center text-muted-foreground">
           Rankings update each time you sync.{" "}
-          {isSignedIn && (
+          {isSignedIn === true && (
             <Link href="/profile" className="text-primary hover:underline">Set your team name</Link>
           )} to compete with teammates.
         </p>

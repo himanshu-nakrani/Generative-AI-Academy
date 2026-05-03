@@ -38,26 +38,35 @@ const pathColors: Record<string, string> = {
   advanced: "bg-slate-600",
 };
 
-function ProgressRing({ value, total, size = 128 }: { value: number; total: number; size?: number }) {
+function ProgressRing({ value, total, size = 128, label }: { value: number; total: number; size?: number; label?: string }) {
   const stroke = 10;
   const r = (size - stroke * 2) / 2;
   const circ = 2 * Math.PI * r;
   const pct = total > 0 ? value / total : 0;
+  const pctRounded = Math.round(pct * 100);
   const offset = circ * (1 - pct);
   return (
-    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
-      <circle
-        cx={size / 2} cy={size / 2} r={r}
-        fill="none"
-        stroke="hsl(var(--primary))"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={circ}
-        strokeDashoffset={offset}
-        style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)" }}
-      />
-    </svg>
+    <div 
+      role="progressbar" 
+      aria-valuenow={pctRounded} 
+      aria-valuemin={0} 
+      aria-valuemax={100}
+      aria-label={label || `Progress: ${value} of ${total}`}
+    >
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none"
+          stroke="hsl(var(--primary))"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)" }}
+        />
+      </svg>
+    </div>
   );
 }
 

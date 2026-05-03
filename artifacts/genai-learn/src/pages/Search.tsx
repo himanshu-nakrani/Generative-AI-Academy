@@ -76,54 +76,63 @@ export default function Search() {
   ].reduce((a, b) => a + b, 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background" role="main">
       {/* Search header */}
-      <div className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-sm py-4 px-5 sm:px-8">
+      <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-sm py-4 px-5 sm:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-3">
+          <form role="search" onSubmit={(e) => e.preventDefault()} className="flex items-center gap-3">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <label htmlFor="search-input" className="sr-only">Search topics, sections, and content</label>
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
               <input
+                id="search-input"
                 data-search-input
-                type="text"
+                type="search"
                 placeholder="Search topics, sections, content..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm"
+                aria-describedby="search-results-status"
+                autoComplete="off"
               />
             </div>
             <button
+              type="button"
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
                 showFilters
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border hover:border-primary/40 hover:bg-muted"
               }`}
+              aria-expanded={showFilters}
+              aria-controls="filters-panel"
+              aria-label={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ''}`}
             >
-              <Filter className="w-4 h-4" />
-              Filters
+              <Filter className="w-4 h-4" aria-hidden="true" />
+              <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="ml-1 px-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold">
+                <span className="ml-1 px-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold" aria-hidden="true">
                   {activeFilterCount}
                 </span>
               )}
             </button>
-          </div>
+          </form>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
 
         {/* Filters panel */}
         {showFilters && (
-          <div className="md:col-span-1">
+          <aside id="filters-panel" className="md:col-span-1" aria-label="Search filters">
             <div className="sticky top-24 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Filters</h3>
+                <h2 className="font-semibold text-sm">Filters</h2>
                 {activeFilterCount > 0 && (
                   <button
                     onClick={clearFilters}
-                    className="text-xs text-primary hover:underline"
+                    className="text-sm text-primary hover:underline"
+                    aria-label="Clear all filters"
                   >
                     Clear all
                   </button>
@@ -131,91 +140,104 @@ export default function Search() {
               </div>
 
               {/* Categories */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category</p>
-                <div className="space-y-1.5">
-                  {CATEGORIES.map(cat => (
-                    <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.categories?.has(cat) ?? false}
-                        onChange={() => toggleCategory(cat)}
-                        className="w-4 h-4 rounded border-border"
-                      />
-                      <span className="flex-1">{cat}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {topics.filter(t => t.category === cat).length}
-                      </span>
-                    </label>
-                  ))}
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Category</legend>
+                <div className="space-y-2" role="group">
+                  {CATEGORIES.map(cat => {
+                    const id = `filter-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`;
+                    return (
+                      <label key={cat} htmlFor={id} className="flex items-center gap-2 text-sm cursor-pointer min-h-[44px]">
+                        <input
+                          id={id}
+                          type="checkbox"
+                          checked={filters.categories?.has(cat) ?? false}
+                          onChange={() => toggleCategory(cat)}
+                          className="w-5 h-5 rounded border-border accent-primary"
+                        />
+                        <span className="flex-1">{cat}</span>
+                        <span className="text-sm text-muted-foreground" aria-label={`${topics.filter(t => t.category === cat).length} topics`}>
+                          {topics.filter(t => t.category === cat).length}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
-              </div>
+              </fieldset>
 
               {/* Difficulty */}
-              <div className="space-y-2 pt-2 border-t border-border">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Difficulty</p>
-                <div className="space-y-1.5">
-                  {DIFFICULTIES.map(diff => (
-                    <label key={diff} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.difficulties?.has(diff) ?? false}
-                        onChange={() => toggleDifficulty(diff)}
-                        className="w-4 h-4 rounded border-border"
-                      />
-                      <span className="flex-1">{diff}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {topics.filter(t => t.difficulty === diff).length}
-                      </span>
-                    </label>
-                  ))}
+              <fieldset className="space-y-2 pt-2 border-t border-border">
+                <legend className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Difficulty</legend>
+                <div className="space-y-2" role="group">
+                  {DIFFICULTIES.map(diff => {
+                    const id = `filter-diff-${diff.toLowerCase()}`;
+                    return (
+                      <label key={diff} htmlFor={id} className="flex items-center gap-2 text-sm cursor-pointer min-h-[44px]">
+                        <input
+                          id={id}
+                          type="checkbox"
+                          checked={filters.difficulties?.has(diff) ?? false}
+                          onChange={() => toggleDifficulty(diff)}
+                          className="w-5 h-5 rounded border-border accent-primary"
+                        />
+                        <span className="flex-1">{diff}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {topics.filter(t => t.difficulty === diff).length}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
-              </div>
+              </fieldset>
 
               {/* Completion status */}
-              <div className="space-y-2 pt-2 border-t border-border">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
-                <div className="space-y-1.5">
+              <fieldset className="space-y-2 pt-2 border-t border-border">
+                <legend className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Status</legend>
+                <div className="space-y-2" role="group">
                   {[
                     { val: "completed" as const, label: "Completed" },
                     { val: "not-started" as const, label: "Not started" },
-                  ].map(({ val, label }) => (
-                    <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.completionStatus?.has(val) ?? false}
-                        onChange={() => toggleCompletion(val)}
-                        className="w-4 h-4 rounded border-border"
-                      />
-                      <span className="flex-1">{label}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {val === "completed" ? completed.size : topics.length - completed.size}
-                      </span>
-                    </label>
-                  ))}
+                  ].map(({ val, label }) => {
+                    const id = `filter-status-${val}`;
+                    return (
+                      <label key={val} htmlFor={id} className="flex items-center gap-2 text-sm cursor-pointer min-h-[44px]">
+                        <input
+                          id={id}
+                          type="checkbox"
+                          checked={filters.completionStatus?.has(val) ?? false}
+                          onChange={() => toggleCompletion(val)}
+                          className="w-5 h-5 rounded border-border accent-primary"
+                        />
+                        <span className="flex-1">{label}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {val === "completed" ? completed.size : topics.length - completed.size}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
-              </div>
+              </fieldset>
 
               {/* Quiz taken filter */}
-              <div className="space-y-2 pt-2 border-t border-border">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <fieldset className="space-y-2 pt-2 border-t border-border">
+                <label htmlFor="filter-quiz" className="flex items-center gap-2 text-sm cursor-pointer min-h-[44px]">
                   <input
+                    id="filter-quiz"
                     type="checkbox"
                     checked={filters.quizOnly ?? false}
                     onChange={() => setFilters({ ...filters, quizOnly: !filters.quizOnly })}
-                    className="w-4 h-4 rounded border-border"
+                    className="w-5 h-5 rounded border-border accent-primary"
                   />
                   <span className="flex-1">Quiz completed</span>
                 </label>
-              </div>
+              </fieldset>
             </div>
-          </div>
+          </aside>
         )}
 
         {/* Results */}
-        <div className={showFilters ? "md:col-span-3" : "md:col-span-4"}>
+        <section className={showFilters ? "md:col-span-3" : "md:col-span-4"} aria-label="Search results">
           <div className="mb-6">
-            <p className="text-sm text-muted-foreground">
+            <p id="search-results-status" className="text-sm text-muted-foreground" role="status" aria-live="polite">
               {displayMode === "search"
                 ? query.trim()
                   ? `${results.length} result${results.length !== 1 ? "s" : ""} for "${query}"`
@@ -225,14 +247,14 @@ export default function Search() {
           </div>
 
           {results.length === 0 ? (
-            <div className="text-center py-12">
-              <SearchIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-20" />
+            <div className="text-center py-12" role="status">
+              <SearchIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-20" aria-hidden="true" />
               <p className="text-sm text-muted-foreground">
                 {query.trim() ? "No results found" : "No topics match your filters"}
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <ul className="space-y-3" role="list" aria-label="Search results list">
               {results.map((result, i) => {
                 const topic = topics.find(t => t.slug === result.slug);
                 const isCompleted = completed.has(result.slug);
@@ -241,61 +263,64 @@ export default function Search() {
                 const href = result.sectionIndex !== undefined ? `/topic/${result.slug}#section-${result.sectionIndex}` : `/topic/${result.slug}`;
 
                 return (
-                  <Link
-                    key={`${result.slug}:${result.sectionIndex ?? ""}:${i}`}
-                    href={href}
-                  >
-                    <div className="group p-4 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/4 cursor-pointer transition-all">
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {result.type === "topic"
-                            ? <Book className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            : <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
-                          <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
-                            {result.title}
-                          </h3>
+                  <li key={`${result.slug}:${result.sectionIndex ?? ""}:${i}`}>
+                    <Link
+                      href={href}
+                      aria-label={`${result.title}${isCompleted ? ', completed' : ''}${quizPct !== null ? `, quiz score ${quizPct}%` : ''}`}
+                    >
+                      <article className="group p-4 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/4 cursor-pointer transition-all">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            {result.type === "topic"
+                              ? <Book className="w-4 h-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                              : <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />}
+                            <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
+                              {result.title}
+                            </h3>
+                          </div>
+                          {isCompleted && <BookMarked className="w-4 h-4 text-emerald-500 flex-shrink-0" aria-label="Completed" />}
                         </div>
-                        {isCompleted && <BookMarked className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
-                      </div>
 
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
-                        {result.preview}
-                      </p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                          {result.preview}
+                        </p>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        {result.category && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[result.category as keyof typeof categoryColors]}`}>
-                            {result.category}
-                          </span>
-                        )}
-                        {result.difficulty && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${difficultyColors[result.difficulty as keyof typeof difficultyColors]}`}>
-                            {result.difficulty}
-                          </span>
-                        )}
-                        {topic && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" />{topic.readTime}m
-                          </span>
-                        )}
-                        {quizPct !== null && (
-                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                            quizPct >= 80 ? "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
-                            : quizPct >= 60 ? "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
-                            : "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300"
-                          }`}>
-                            <Target className="w-3 h-3 inline mr-0.5" />{quizPct}%
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {result.category && (
+                            <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${categoryColors[result.category as keyof typeof categoryColors]}`}>
+                              {result.category}
+                            </span>
+                          )}
+                          {result.difficulty && (
+                            <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${difficultyColors[result.difficulty as keyof typeof difficultyColors]}`}>
+                              {result.difficulty}
+                            </span>
+                          )}
+                          {topic && (
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="w-3 h-3" aria-hidden="true" />
+                              <span aria-label={`${topic.readTime} minutes read time`}>{topic.readTime}m</span>
+                            </span>
+                          )}
+                          {quizPct !== null && (
+                            <span className={`text-sm px-2 py-0.5 rounded font-medium ${
+                              quizPct >= 80 ? "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
+                              : quizPct >= 60 ? "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                              : "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300"
+                            }`} aria-label={`Quiz score ${quizPct} percent`}>
+                              <Target className="w-3 h-3 inline mr-0.5" aria-hidden="true" />{quizPct}%
+                            </span>
+                          )}
+                        </div>
+                      </article>
+                    </Link>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

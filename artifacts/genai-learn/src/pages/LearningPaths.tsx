@@ -28,8 +28,8 @@ export default function LearningPaths() {
             Three structured tracks designed to take you from first principles to research-level understanding. Follow a path or jump directly to any topic.
           </p>
           {completedCount > 0 && (
-            <div className="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium" role="status">
+              <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
               {completedCount} of {topics.length} topics completed
             </div>
           )}
@@ -58,14 +58,16 @@ export default function LearningPaths() {
                   <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-bold tracking-tight mb-0.5">{path.title}</h2>
                     <p className="text-sm text-muted-foreground">{path.subtitle}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
+                        <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
                         {pathTopics.length} topics
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        ~{Math.round(totalReadTime / 60 * 10) / 10}h reading
+                        <Clock className="w-3 h-3" aria-hidden="true" />
+                        <span aria-label={`approximately ${Math.round(totalReadTime / 60 * 10) / 10} hours reading`}>
+                          ~{Math.round(totalReadTime / 60 * 10) / 10}h reading
+                        </span>
                       </span>
                       {completedInPath > 0 && (
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">
@@ -77,13 +79,20 @@ export default function LearningPaths() {
                     {/* Progress bar */}
                     {completedInPath > 0 && (
                       <div className="mt-3 flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${path.title} progress: ${completedInPath} of ${pathTopics.length} topics completed`}
+                        >
                           <div
                             className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-xs font-mono text-muted-foreground tabular-nums w-8 text-right">{pct}%</span>
+                        <span className="text-sm font-mono text-muted-foreground tabular-nums w-8 text-right" aria-hidden="true">{pct}%</span>
                       </div>
                     )}
                   </div>
