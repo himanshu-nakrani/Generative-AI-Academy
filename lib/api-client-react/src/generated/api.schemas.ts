@@ -8,3 +8,72 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export interface SyncRequest {
+  /** All completed topic slugs */
+  completedSlugs: string[];
+  /** All bookmarked topic slugs */
+  bookmarkedSlugs: string[];
+  /** All earned achievement IDs */
+  achievementIds: string[];
+  /** @minimum 0 */
+  currentStreak: number;
+  /** @minimum 0 */
+  bestStreak: number;
+  lastActivityDate?: string | null;
+  displayName?: string | null;
+  email: string;
+}
+
+export interface SyncResponse {
+  completedSlugs: string[];
+  bookmarkedSlugs: string[];
+  achievementIds: string[];
+  currentStreak: number;
+  bestStreak: number;
+  lastActivityDate?: string | null;
+  syncedAt: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  completedCount: number;
+  currentStreak: number;
+  bestStreak: number;
+  isCurrentUser: boolean;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+  currentUserRank?: number | null;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  completedCount: number;
+  currentStreak: number;
+  bestStreak: number;
+  createdAt: string;
+}
+
+export interface UpdateProfileRequest {
+  displayName?: string | null;
+}
+
+export type GetLeaderboardParams = {
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+};

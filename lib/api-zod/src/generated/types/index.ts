@@ -6,4 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./errorResponse";
+export * from "./getLeaderboardParams";
 export * from "./healthStatus";
+export * from "./leaderboardEntry";
+export * from "./leaderboardResponse";
+export * from "./syncRequest";
+export * from "./syncResponse";
+export * from "./updateProfileRequest";
+export * from "./userProfile";

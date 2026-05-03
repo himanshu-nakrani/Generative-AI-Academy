@@ -14,3 +14,113 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Upserts all user learning data — progress, streaks, achievements, bookmarks
+ * @summary Sync user learning data to server
+ */
+export const syncUserDataBodyCurrentStreakMin = 0;
+
+export const syncUserDataBodyBestStreakMin = 0;
+
+export const SyncUserDataBody = zod.object({
+  completedSlugs: zod.array(zod.string()).describe("All completed topic slugs"),
+  bookmarkedSlugs: zod
+    .array(zod.string())
+    .describe("All bookmarked topic slugs"),
+  achievementIds: zod
+    .array(zod.string())
+    .describe("All earned achievement IDs"),
+  currentStreak: zod.number().min(syncUserDataBodyCurrentStreakMin),
+  bestStreak: zod.number().min(syncUserDataBodyBestStreakMin),
+  lastActivityDate: zod.coerce.date().nullish(),
+  displayName: zod.string().nullish(),
+  email: zod.string(),
+});
+
+export const SyncUserDataResponse = zod.object({
+  completedSlugs: zod.array(zod.string()),
+  bookmarkedSlugs: zod.array(zod.string()),
+  achievementIds: zod.array(zod.string()),
+  currentStreak: zod.number(),
+  bestStreak: zod.number(),
+  lastActivityDate: zod.string().nullish(),
+  syncedAt: zod.coerce.date(),
+});
+
+/**
+ * Returns the user's full learning state stored on the server
+ * @summary Get user's synced data from server
+ */
+export const GetUserSyncDataResponse = zod.object({
+  completedSlugs: zod.array(zod.string()),
+  bookmarkedSlugs: zod.array(zod.string()),
+  achievementIds: zod.array(zod.string()),
+  currentStreak: zod.number(),
+  bestStreak: zod.number(),
+  lastActivityDate: zod.string().nullish(),
+  syncedAt: zod.coerce.date(),
+});
+
+/**
+ * Returns top users ranked by total completed topics
+ * @summary Get leaderboard
+ */
+export const getLeaderboardQueryLimitDefault = 20;
+export const getLeaderboardQueryLimitMax = 100;
+
+export const GetLeaderboardQueryParams = zod.object({
+  limit: zod.coerce
+    .number()
+    .min(1)
+    .max(getLeaderboardQueryLimitMax)
+    .default(getLeaderboardQueryLimitDefault),
+});
+
+export const GetLeaderboardResponse = zod.object({
+  entries: zod.array(
+    zod.object({
+      rank: zod.number(),
+      userId: zod.string(),
+      displayName: zod.string().nullish(),
+      avatarUrl: zod.string().nullish(),
+      completedCount: zod.number(),
+      currentStreak: zod.number(),
+      bestStreak: zod.number(),
+      isCurrentUser: zod.boolean(),
+    }),
+  ),
+  currentUserRank: zod.number().nullish(),
+});
+
+/**
+ * @summary Get current user profile
+ */
+export const GetMyProfileResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  displayName: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
+  completedCount: zod.number(),
+  currentStreak: zod.number(),
+  bestStreak: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update current user profile
+ */
+export const UpdateMyProfileBody = zod.object({
+  displayName: zod.string().nullish(),
+});
+
+export const UpdateMyProfileResponse = zod.object({
+  id: zod.string(),
+  email: zod.string(),
+  displayName: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
+  completedCount: zod.number(),
+  currentStreak: zod.number(),
+  bestStreak: zod.number(),
+  createdAt: zod.coerce.date(),
+});

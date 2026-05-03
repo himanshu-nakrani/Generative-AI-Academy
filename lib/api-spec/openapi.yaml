@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: sync
+    description: User data sync operations
+  - name: leaderboard
+    description: Leaderboard operations
+  - name: users
+    description: User profile operations
 paths:
   /healthz:
     get:
@@ -24,7 +30,131 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /sync:
+    post:
+      operationId: syncUserData
+      tags: [sync]
+      summary: Sync user learning data to server
+      description: Upserts all user learning data — progress, streaks, achievements, bookmarks
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncRequest"
+      responses:
+        "200":
+          description: Sync successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      operationId: getUserSyncData
+      tags: [sync]
+      summary: Get user's synced data from server
+      description: Returns the user's full learning state stored on the server
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: User data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get leaderboard
+      description: Returns top users ranked by total completed topics
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Leaderboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardResponse"
+
+  /user/me:
+    get:
+      operationId: getMyProfile
+      tags: [users]
+      summary: Get current user profile
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateMyProfile
+      tags: [users]
+      summary: Update current user profile
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
+  securitySchemes:
+    clerkAuth:
+      type: http
+      scheme: bearer
+
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +164,163 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SyncRequest:
+      type: object
+      properties:
+        completedSlugs:
+          type: array
+          items:
+            type: string
+          description: All completed topic slugs
+        bookmarkedSlugs:
+          type: array
+          items:
+            type: string
+          description: All bookmarked topic slugs
+        achievementIds:
+          type: array
+          items:
+            type: string
+          description: All earned achievement IDs
+        currentStreak:
+          type: integer
+          minimum: 0
+        bestStreak:
+          type: integer
+          minimum: 0
+        lastActivityDate:
+          type: string
+          format: date
+          nullable: true
+        displayName:
+          type: string
+          nullable: true
+        email:
+          type: string
+      required:
+        - completedSlugs
+        - bookmarkedSlugs
+        - achievementIds
+        - currentStreak
+        - bestStreak
+        - email
+
+    SyncResponse:
+      type: object
+      properties:
+        completedSlugs:
+          type: array
+          items:
+            type: string
+        bookmarkedSlugs:
+          type: array
+          items:
+            type: string
+        achievementIds:
+          type: array
+          items:
+            type: string
+        currentStreak:
+          type: integer
+        bestStreak:
+          type: integer
+        lastActivityDate:
+          type: string
+          nullable: true
+        syncedAt:
+          type: string
+          format: date-time
+      required:
+        - completedSlugs
+        - bookmarkedSlugs
+        - achievementIds
+        - currentStreak
+        - bestStreak
+        - syncedAt
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        completedCount:
+          type: integer
+        currentStreak:
+          type: integer
+        bestStreak:
+          type: integer
+        isCurrentUser:
+          type: boolean
+      required:
+        - rank
+        - userId
+        - completedCount
+        - currentStreak
+        - bestStreak
+        - isCurrentUser
+
+    LeaderboardResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+        currentUserRank:
+          type: integer
+          nullable: true
+      required:
+        - entries
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        completedCount:
+          type: integer
+        currentStreak:
+          type: integer
+        bestStreak:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - completedCount
+        - currentStreak
+        - bestStreak
+        - createdAt
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          nullable: true
