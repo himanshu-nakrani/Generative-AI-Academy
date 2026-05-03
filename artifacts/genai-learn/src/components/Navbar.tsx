@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import {
-  Menu, X, Sun, Moon, Flame, BarChart3, Network, Highlighter, Search,
+  Menu, X, Flame, BarChart3, Network, Highlighter, Search,
   LogIn, LogOut, User, ChevronDown,
 } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
@@ -81,7 +81,7 @@ function UserMenu() {
 export default function Navbar() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { dark, toggleDark, completedCount, streak } = useApp();
+  const { completedCount, streak } = useApp();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
@@ -89,14 +89,15 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 7h10M7 2v10M4 4l6 6M10 4l-6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
+            <div className="w-7 h-7 rounded-[5px] bg-primary flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_hsl(45_66%_52%/0.35)]">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <path d="M6.5 1.5L11.5 6.5L6.5 11.5L1.5 6.5L6.5 1.5Z" stroke="hsl(214,22%,8%)" strokeWidth="1.6" strokeLinejoin="round"/>
+                <circle cx="6.5" cy="6.5" r="1.5" fill="hsl(214,22%,8%)"/>
               </svg>
             </div>
             <span className="font-semibold text-sm tracking-tight text-foreground">
-              GenAI<span className="text-muted-foreground font-normal"> Learn</span>
+              GenAI<span className="text-primary font-semibold"> Learn</span>
             </span>
           </Link>
 
@@ -148,11 +149,6 @@ export default function Navbar() {
                 </span>
               </Link>
             )}
-            <button onClick={toggleDark} aria-label="Toggle dark mode"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
             {/* Auth */}
             <Show when="signed-in">
               <UserMenu />
@@ -176,10 +172,6 @@ export default function Navbar() {
                 <Flame className="w-3.5 h-3.5" />{streak}
               </span>
             )}
-            <button onClick={toggleDark} aria-label="Toggle dark mode"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
             <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}>
               {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}

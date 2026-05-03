@@ -14,11 +14,7 @@ function loadCompleted(): Set<string> {
   catch { return new Set(); }
 }
 function getInitialDark(): boolean {
-  try {
-    const s = localStorage.getItem(THEME_KEY);
-    if (s !== null) return s === "dark";
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-  } catch { return false; }
+  return true; // Premium Dark theme — always dark
 }
 function loadRecent(): string[] {
   try { const r = localStorage.getItem(RECENT_KEY); return r ? JSON.parse(r) : []; }
