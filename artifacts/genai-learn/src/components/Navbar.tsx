@@ -14,6 +14,7 @@ import { useXP } from "@/hooks/useXP";
 const navLinks = [
   { href: "/topics",         label: "Topics" },
   { href: "/learning-paths", label: "Paths" },
+  { href: "/map",            label: "Map" },
   { href: "/glossary",       label: "Glossary" },
   { href: "/resources",      label: "Resources" },
 ];
