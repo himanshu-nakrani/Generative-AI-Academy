@@ -58,57 +58,57 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ── Calm Scholar — clean off-white light theme ─────────────────────── */
+/* ── Premium Minimalist — Warm cream with deep charcoal accents ─────── */
 :root {
   --opaque-button-border-intensity: -8;
-  --button-outline: rgba(0,0,0,.08);
-  --badge-outline:  rgba(0,0,0,.05);
-  --elevate-1: rgba(0,0,0,.02);
-  --elevate-2: rgba(0,0,0,.05);
+  --button-outline: rgba(0,0,0,.06);
+  --badge-outline:  rgba(0,0,0,.04);
+  --elevate-1: rgba(0,0,0,.015);
+  --elevate-2: rgba(0,0,0,.04);
 
-  /* Off-white base — warm, easy on eyes */
-  --background:           40 20% 96%;     /* #F5F3EF */
-  --foreground:           20 10% 11%;     /* #1C1917 near-black */
-  --border:               30 12% 88%;     /* #E5E1DB */
-  --input:                30 12% 88%;
-  --ring:                 198 45% 38%;    /* teal ring */
+  /* Warm cream base — premium, editorial feel */
+  --background:           36 33% 97%;     /* #FAF9F7 cream */
+  --foreground:           20 14% 8%;      /* #141210 deep charcoal */
+  --border:               30 20% 90%;     /* #EAE6E1 warm gray */
+  --input:                30 20% 90%;
+  --ring:                 15 8% 20%;      /* charcoal ring */
 
-  /* Cards — pure white lifted off the background */
-  --card:                 0 0% 100%;
-  --card-foreground:      20 10% 11%;
-  --card-border:          30 12% 90%;
+  /* Cards — slightly warmer white */
+  --card:                 40 33% 99%;     /* #FEFDFB */
+  --card-foreground:      20 14% 8%;
+  --card-border:          30 18% 91%;
 
   /* Popover */
-  --popover:              0 0% 100%;
-  --popover-foreground:   20 10% 11%;
-  --popover-border:       30 12% 90%;
+  --popover:              40 33% 99%;
+  --popover-foreground:   20 14% 8%;
+  --popover-border:       30 18% 91%;
 
-  /* Calm teal primary — scholarly, focused */
-  --primary:              198 45% 38%;    /* #2D7D9A */
-  --primary-foreground:   0 0% 100%;
+  /* Charcoal primary — sophisticated, minimal */
+  --primary:              20 14% 12%;     /* #1F1B18 deep charcoal */
+  --primary-foreground:   36 33% 97%;     /* cream */
 
   /* Soft secondary */
-  --secondary:            210 18% 94%;    /* #EEF1F4 */
-  --secondary-foreground: 20 10% 11%;
+  --secondary:            30 20% 94%;     /* #F3F0EC */
+  --secondary-foreground: 20 14% 8%;
 
   /* Muted */
-  --muted:                210 14% 94%;
-  --muted-foreground:     20 6% 44%;      /* #706C69 */
+  --muted:                30 16% 94%;     /* #F2EFEB */
+  --muted-foreground:     20 8% 46%;      /* #786F68 warm gray */
 
-  /* Accent = teal */
-  --accent:               198 45% 38%;
-  --accent-foreground:    0 0% 100%;
+  /* Accent — warm terracotta for highlights */
+  --accent:               15 60% 52%;     /* #C46442 terracotta */
+  --accent-foreground:    36 33% 97%;
 
   /* Destructive */
   --destructive:          0 68% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  /* Charts */
-  --chart-1: 198 45% 38%;
-  --chart-2: 142 42% 38%;
-  --chart-3: 25 70% 50%;
-  --chart-4: 270 38% 52%;
-  --chart-5: 0 60% 50%;
+  /* Charts — warm palette */
+  --chart-1: 20 14% 12%;
+  --chart-2: 15 60% 52%;
+  --chart-3: 142 40% 45%;
+  --chart-4: 220 45% 55%;
+  --chart-5: 35 80% 55%;
 
   /* Fonts */
   --app-font-sans:  'Inter', system-ui, sans-serif;
@@ -116,12 +116,12 @@
   --app-font-mono:  'JetBrains Mono', 'Fira Code', monospace;
   --radius: .5rem;
 
-  /* Shadows — clean, neutral */
-  --shadow-xs:  0 1px 2px rgba(28,25,23,.06);
-  --shadow-sm:  0 1px 4px rgba(28,25,23,.08), 0 1px 2px rgba(28,25,23,.04);
-  --shadow:     0 2px 8px rgba(28,25,23,.08), 0 1px 2px rgba(28,25,23,.04);
-  --shadow-md:  0 4px 14px rgba(28,25,23,.09), 0 2px 4px rgba(28,25,23,.05);
-  --shadow-lg:  0 8px 24px rgba(28,25,23,.10), 0 2px 6px rgba(28,25,23,.05);
+  /* Shadows — ultra subtle */
+  --shadow-xs:  0 1px 2px rgba(20,18,16,.04);
+  --shadow-sm:  0 1px 3px rgba(20,18,16,.06), 0 1px 2px rgba(20,18,16,.03);
+  --shadow:     0 2px 6px rgba(20,18,16,.06), 0 1px 2px rgba(20,18,16,.03);
+  --shadow-md:  0 4px 12px rgba(20,18,16,.07), 0 2px 4px rgba(20,18,16,.04);
+  --shadow-lg:  0 8px 20px rgba(20,18,16,.08), 0 2px 6px rgba(20,18,16,.04);
 
   --primary-border: hsl(var(--primary));
   --accent-border:  hsl(var(--accent));
@@ -130,47 +130,47 @@
   color-scheme: light;
 }
 
-/* ── Dark mode ──────────────────────────────────────────────── */
+/* ── Dark mode — warm charcoal ──────────────────────────────── */
 .dark {
-  --button-outline: rgba(255,255,255,.08);
-  --badge-outline: rgba(255,255,255,.05);
+  --button-outline: rgba(255,255,255,.06);
+  --badge-outline: rgba(255,255,255,.04);
   --elevate-1: rgba(255,255,255,.02);
   --elevate-2: rgba(255,255,255,.04);
 
-  --background:    220 16% 10%;           /* #171B22 */
-  --foreground:    210 14% 89%;           /* #DCDFE6 */
-  --border:        220 14% 20%;           /* #2C3140 */
-  --card:          220 14% 13%;           /* #1D2130 */
-  --card-foreground: 210 14% 89%;
-  --card-border:   220 14% 22%;
-  --sidebar:       220 16% 8%;
-  --sidebar-foreground: 210 14% 89%;
-  --sidebar-border: 220 14% 18%;
-  --sidebar-primary: 198 50% 54%;
-  --sidebar-primary-foreground: 220 16% 10%;
-  --sidebar-accent: 220 14% 17%;
-  --sidebar-accent-foreground: 210 14% 89%;
-  --sidebar-ring: 198 50% 54%;
-  --popover:       220 14% 13%;
-  --popover-foreground: 210 14% 89%;
-  --popover-border: 220 14% 22%;
-  --primary:       198 50% 54%;           /* lighter teal in dark */
-  --primary-foreground: 220 16% 10%;
-  --secondary:     220 14% 17%;
-  --secondary-foreground: 210 14% 89%;
-  --muted:         220 14% 17%;
-  --muted-foreground: 210 8% 56%;
-  --accent:        198 50% 54%;
-  --accent-foreground: 220 16% 10%;
+  --background:    20 14% 7%;             /* #121110 warm black */
+  --foreground:    30 12% 88%;            /* #E3DFD9 warm white */
+  --border:        20 12% 16%;            /* #2A2523 */
+  --card:          20 12% 10%;            /* #1A1816 */
+  --card-foreground: 30 12% 88%;
+  --card-border:   20 12% 18%;
+  --sidebar:       20 14% 6%;
+  --sidebar-foreground: 30 12% 88%;
+  --sidebar-border: 20 12% 14%;
+  --sidebar-primary: 30 12% 88%;
+  --sidebar-primary-foreground: 20 14% 7%;
+  --sidebar-accent: 20 12% 14%;
+  --sidebar-accent-foreground: 30 12% 88%;
+  --sidebar-ring: 30 12% 88%;
+  --popover:       20 12% 10%;
+  --popover-foreground: 30 12% 88%;
+  --popover-border: 20 12% 18%;
+  --primary:       30 12% 88%;            /* warm white primary */
+  --primary-foreground: 20 14% 7%;
+  --secondary:     20 12% 14%;
+  --secondary-foreground: 30 12% 88%;
+  --muted:         20 10% 14%;
+  --muted-foreground: 30 8% 52%;
+  --accent:        15 55% 58%;            /* lighter terracotta */
+  --accent-foreground: 20 14% 7%;
   --destructive:   0 62% 56%;
   --destructive-foreground: 0 0% 100%;
-  --input:         220 14% 20%;
-  --ring:          198 50% 54%;
-  --chart-1: 198 50% 54%;
-  --chart-2: 142 44% 50%;
-  --chart-3: 25 72% 56%;
-  --chart-4: 270 40% 60%;
-  --chart-5: 0 62% 56%;
+  --input:         20 12% 16%;
+  --ring:          30 12% 88%;
+  --chart-1: 30 12% 88%;
+  --chart-2: 15 55% 58%;
+  --chart-3: 142 44% 50%;
+  --chart-4: 220 50% 62%;
+  --chart-5: 35 80% 58%;
 
   color-scheme: dark;
 }
@@ -183,7 +183,14 @@
 
 /* ── Typography ───────────────────────────────────────────── */
 .gradient-text {
-  color: hsl(var(--primary));
+  color: hsl(var(--accent));
+}
+
+/* ── Premium serif headings ───────────────────────────────── */
+.serif-display {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+  letter-spacing: -0.02em;
 }
 
 /* ── Code ─────────────────────────────────────────────────── */
@@ -262,11 +269,12 @@
 .topic-card {
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .topic-card:hover {
-  border-color: hsl(198 45% 38% / 0.40);
-  box-shadow: 0 2px 12px rgba(28,25,23,.07);
+  border-color: hsl(var(--primary) / 0.25);
+  box-shadow: 0 4px 16px rgba(20,18,16,.06);
+  transform: translateY(-1px);
 }
 
 /* ── Reference chip ───────────────────────────────────────── */

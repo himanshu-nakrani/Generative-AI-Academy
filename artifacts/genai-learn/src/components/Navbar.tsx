@@ -1,9 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import {
-  Menu, X, Flame, BarChart3, Network, Highlighter, Search,
-  LogIn, LogOut, User, ChevronDown, Bookmark, Trophy, Calendar,
-  Sun, Moon, HelpCircle, Zap,
+  Menu, X, Flame, BarChart3, Search,
+  LogIn, LogOut, User, ChevronDown, Bookmark, Trophy,
+  Sun, Moon, Command,
 } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { topics } from "@/data/topics";
@@ -13,8 +13,7 @@ import { useXP } from "@/hooks/useXP";
 
 const navLinks = [
   { href: "/topics",         label: "Topics" },
-  { href: "/learning-paths", label: "Learning Paths" },
-  { href: "/leaderboard",    label: "Leaderboard" },
+  { href: "/learning-paths", label: "Paths" },
   { href: "/glossary",       label: "Glossary" },
   { href: "/resources",      label: "Resources" },
 ];
@@ -34,78 +33,59 @@ function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted transition-colors text-sm"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-muted transition-colors text-sm"
       >
         {user.imageUrl ? (
-          <img src={user.imageUrl} alt={name} className="w-6 h-6 rounded-full object-cover" />
+          <img src={user.imageUrl} alt={name} className="w-7 h-7 rounded-full object-cover ring-1 ring-border" />
         ) : (
-          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
+          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-medium">
             {initials.toUpperCase() || <User className="w-3.5 h-3.5" />}
           </div>
         )}
-        <span className="hidden sm:inline text-foreground font-medium max-w-[120px] truncate">{name}</span>
-        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1.5 w-52 bg-card border border-border rounded-lg shadow-md z-50 overflow-hidden">
-            <div className="px-3 py-2.5 border-b border-border">
+          <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-border bg-muted/30">
               <p className="text-sm font-medium text-foreground truncate">{name}</p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">
                 {user.primaryEmailAddress?.emailAddress}
               </p>
             </div>
-            <div className="p-1">
+            <div className="p-1.5">
               <Link href="/progress" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
                   <BarChart3 className="w-4 h-4 text-muted-foreground" />
-                  My Progress
+                  Progress
                 </div>
               </Link>
               <Link href="/streaks" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
                   <Flame className="w-4 h-4 text-muted-foreground" />
                   Streaks
                 </div>
               </Link>
-              <Link href="/analytics" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
-                  <BarChart3 className="w-4 h-4 text-primary" />
-                  Analytics
-                </div>
-              </Link>
-              <Link href="/quiz-stats" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
-                  <BarChart3 className="w-4 h-4 text-muted-foreground" />
-                  Quiz Stats
-                </div>
-              </Link>
               <Link href="/achievements" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
                   <Trophy className="w-4 h-4 text-muted-foreground" />
                   Achievements
                 </div>
               </Link>
               <Link href="/bookmarks" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
                   <Bookmark className="w-4 h-4 text-muted-foreground" />
                   Bookmarks
                 </div>
               </Link>
-              <Link href="/profile" onClick={() => setOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  Profile
-                </div>
-              </Link>
+              <div className="my-1.5 border-t border-border" />
               <button
                 onClick={() => {
                   setOpen(false);
                   signOut(() => navigate("/"));
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted cursor-pointer transition-colors"
               >
                 <LogOut className="w-4 h-4 text-muted-foreground" />
                 Sign out
@@ -123,125 +103,93 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { completedCount, streak, dark, toggleDark } = useApp();
   const { earnedCount, newlyEarned } = useAchievements();
-  const { level, levelName, levelColor } = useXP();
+  const { level } = useXP();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="flex items-center justify-between h-14">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      <div className="max-w-6xl mx-auto px-5 lg:px-8">
+        <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
-            <div className="w-7 h-7 rounded-[5px] bg-primary flex items-center justify-center flex-shrink-0 shadow-[0_2px_8px_hsl(198_45%_38%/0.25)]">
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                <path d="M6.5 1.5L11.5 6.5L6.5 11.5L1.5 6.5L6.5 1.5Z" stroke="white" strokeWidth="1.6" strokeLinejoin="round"/>
-                <circle cx="6.5" cy="6.5" r="1.5" fill="white"/>
+          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 2L12 7L7 12L2 7L7 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" className="text-primary-foreground"/>
+                <circle cx="7" cy="7" r="1.5" fill="currentColor" className="text-primary-foreground"/>
               </svg>
             </div>
-            <span className="font-semibold text-sm tracking-tight text-foreground">
-              GenAI<span className="text-primary font-semibold"> Learn</span>
+            <span className="font-semibold text-foreground tracking-tight">
+              GenAI Academy
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-0.5">
+          {/* Desktop nav - center */}
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map(({ href, label }) => {
               const active = location === href || (href !== "/" && location.startsWith(href));
               return (
                 <Link key={href} href={href}
-                  className={`px-3.5 py-1.5 rounded-md text-sm transition-colors ${
-                    active ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    active 
+                      ? "text-foreground bg-muted" 
+                      : "text-muted-foreground hover:text-foreground"
                   }`}>
                   {label}
                 </Link>
               );
             })}
-            <Link href="/map"
-              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
-                location === "/map" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}>
-              <Network className="w-3.5 h-3.5" />Map
-            </Link>
-            <Link href="/notes"
-              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
-                location === "/notes" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}>
-              <Highlighter className="w-3.5 h-3.5" />Notes
-            </Link>
-            <Link href="/search"
-              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
-                location === "/search" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}>
-              <Search className="w-3.5 h-3.5" />Search
-            </Link>
-            <Link href="/streaks"
-              className={`px-3.5 py-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
-                location === "/streaks" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}>
-              <Flame className="w-3.5 h-3.5" />Streaks
-            </Link>
           </div>
 
           {/* Right side */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-2">
+            {/* Search trigger */}
+            <Link href="/search">
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground">
+                <Search className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline">Search</span>
+                <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-background text-[10px] font-mono text-muted-foreground border border-border">
+                  <Command className="w-2.5 h-2.5" />K
+                </kbd>
+              </button>
+            </Link>
+
+            {/* Stats pills */}
             {streak > 0 && (
-              <span className="flex items-center gap-1 text-xs font-medium text-orange-500 tabular-nums">
+              <span className="flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full bg-orange-50 dark:bg-orange-950/30">
                 <Flame className="w-3.5 h-3.5" />{streak}
               </span>
             )}
+            
             {completedCount > 0 && (
               <Link href="/progress">
-                <span className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors tabular-nums px-2 py-0.5 rounded-full bg-muted">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1 rounded-full bg-muted hover:bg-muted/80">
                   <BarChart3 className="w-3 h-3" />
                   {completedCount}/{topics.length}
                 </span>
               </Link>
             )}
 
-            {/* XP / Level badge */}
-            <Link href="/analytics">
-              <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-semibold bg-muted hover:bg-muted/80 transition-colors tabular-nums ${levelColor}`}>
-                <Zap className="w-3 h-3" />Lv{level}
-              </span>
-            </Link>
-
-            {/* Achievements badge */}
+            {/* Achievements */}
             <Link href="/achievements" className="relative">
-              <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-colors ${
-                location === "/achievements" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80"
+              <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${
+                location === "/achievements" 
+                  ? "bg-accent/10 text-accent" 
+                  : "text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80"
               }`}>
                 <Trophy className="w-3 h-3" />
                 {earnedCount}
               </span>
               {newlyEarned.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent animate-pulse" />
               )}
-            </Link>
-
-            {/* Bookmarks */}
-            <Link href="/bookmarks"
-              className={`p-1.5 rounded-md text-sm transition-colors flex items-center gap-1.5 ${
-                location === "/bookmarks" ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}>
-              <Bookmark className="w-3.5 h-3.5" />
             </Link>
 
             {/* Theme Toggle */}
             <button
               onClick={toggleDark}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              title={`Theme: ${dark ? "dark" : "light"}`}
+              className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             >
-              {dark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            </button>
-
-            {/* Help / Shortcuts */}
-            <button
-              onClick={() => document.dispatchEvent(new CustomEvent("open-shortcuts"))}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              title="Keyboard shortcuts (press ?)"
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
             {/* Auth */}
@@ -250,26 +198,28 @@ export default function Navbar() {
             </Show>
             <Show when="signed-out">
               <Link href="/sign-in"
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors text-foreground font-medium">
-                <LogIn className="w-3.5 h-3.5" />Sign in
+                className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                Sign in
               </Link>
               <Link href="/topics"
-                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
-                Start Learning
+                className="text-sm px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+                Get Started
               </Link>
             </Show>
           </div>
 
           {/* Mobile right */}
-          <div className="flex items-center gap-1 md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
             {streak > 0 && (
-              <span className="flex items-center gap-0.5 text-xs font-medium text-orange-500">
+              <span className="flex items-center gap-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
                 <Flame className="w-3.5 h-3.5" />{streak}
               </span>
             )}
-            <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}>
-              {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            <button 
+              className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -277,58 +227,68 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background px-5 py-3 space-y-0.5">
-          {navLinks.map(({ href, label }) => (
-            <Link key={href} href={href}
-              className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
-                location === href ? "text-foreground bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}
-              onClick={() => setMobileOpen(false)}>
-              {label}
-            </Link>
-          ))}
-          <Link href="/map" onClick={() => setMobileOpen(false)}>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-              <Network className="w-4 h-4" />Concept Map
-            </div>
-          </Link>
-          <Link href="/notes" onClick={() => setMobileOpen(false)}>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-              <Highlighter className="w-4 h-4" />My Notes
-            </div>
-          </Link>
-          <Link href="/search" onClick={() => setMobileOpen(false)}>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-              <Search className="w-4 h-4" />Search
-            </div>
-          </Link>
-          <Link href="/bookmarks" onClick={() => setMobileOpen(false)}>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-              <Bookmark className="w-4 h-4" />Bookmarks
-            </div>
-          </Link>
-          <Link href="/achievements" onClick={() => setMobileOpen(false)}>
-            <div className="relative flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-              <Trophy className="w-4 h-4" />Achievements
-              {earnedCount > 0 && (
-                <span className="ml-auto text-xs text-primary font-medium">{earnedCount}</span>
-              )}
-            </div>
-          </Link>
-          {completedCount > 0 && (
-            <Link href="/progress" onClick={() => setMobileOpen(false)}>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                <BarChart3 className="w-4 h-4" />My Progress ({completedCount}/{topics.length})
+        <div className="md:hidden border-t border-border bg-background px-5 py-4">
+          <div className="space-y-1">
+            {navLinks.map(({ href, label }) => (
+              <Link key={href} href={href}
+                className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                  location === href 
+                    ? "text-foreground bg-muted" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+                onClick={() => setMobileOpen(false)}>
+                {label}
+              </Link>
+            ))}
+            <Link href="/search" onClick={() => setMobileOpen(false)}>
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                <Search className="w-4 h-4" />Search
               </div>
             </Link>
-          )}
-          <div className="pt-1 border-t border-border mt-1">
-            <Show when="signed-out">
-              <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                  <LogIn className="w-4 h-4" />Sign in
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-border space-y-1">
+            <Link href="/bookmarks" onClick={() => setMobileOpen(false)}>
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                <Bookmark className="w-4 h-4" />Bookmarks
+              </div>
+            </Link>
+            <Link href="/achievements" onClick={() => setMobileOpen(false)}>
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                <span className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4" />Achievements
+                </span>
+                {earnedCount > 0 && (
+                  <span className="text-xs text-accent font-medium">{earnedCount}</span>
+                )}
+              </div>
+            </Link>
+            {completedCount > 0 && (
+              <Link href="/progress" onClick={() => setMobileOpen(false)}>
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+                  <span className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />Progress
+                  </span>
+                  <span className="text-xs text-muted-foreground">{completedCount}/{topics.length}</span>
                 </div>
               </Link>
+            )}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-border">
+            <Show when="signed-out">
+              <div className="flex gap-3">
+                <Link href="/sign-in" onClick={() => setMobileOpen(false)} className="flex-1">
+                  <button className="w-full py-3 rounded-xl text-sm font-medium text-foreground border border-border hover:bg-muted transition-colors">
+                    Sign in
+                  </button>
+                </Link>
+                <Link href="/topics" onClick={() => setMobileOpen(false)} className="flex-1">
+                  <button className="w-full py-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
+                    Get Started
+                  </button>
+                </Link>
+              </div>
             </Show>
             <Show when="signed-in">
               <MobileSignOut onClose={() => setMobileOpen(false)} />
@@ -351,7 +311,7 @@ function MobileSignOut({ onClose }: { onClose: () => void }) {
   return (
     <button
       onClick={() => { onClose(); signOut(() => navigate("/")); }}
-      className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-foreground border border-border hover:bg-muted transition-colors"
     >
       <LogOut className="w-4 h-4" />Sign out ({name})
     </button>
