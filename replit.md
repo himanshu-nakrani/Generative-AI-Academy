@@ -51,5 +51,10 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - `VITE_CLERK_PUBLISHABLE_KEY` — auto-set env var for frontend
 - `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` — auto-set secrets for backend
 - `VITE_CLERK_PROXY_URL` — empty in dev, auto-set in production by deployment system
+- **OAuth Enabled**: Google, GitHub, Discord OAuth buttons integrated at top of sign-in/sign-up pages
+  - Social buttons placement: "top" (prominent), configured in `clerkAppearance`
+  - Sign-up tip: "Fast signup: Google or GitHub above — takes 10 seconds!"
+  - Sign-in tip: "Use Google or GitHub OAuth for instant signup with one click"
+  - OAuth provider setup: Configure in [Clerk Dashboard](https://dashboard.clerk.com) under "User & Authentication" > "Social Connections"
 - Sign-in page: `/sign-in`, Sign-up page: `/sign-up`
 - Auth is optional (app fully usable without login); login enables cross-device sync (future)

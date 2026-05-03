@@ -50,7 +50,7 @@ const clerkAppearance = {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
-    socialButtonsPlacement: "bottom" as const,
+    socialButtonsPlacement: "top" as const,
   },
   variables: {
     colorPrimary: "hsl(45, 66%, 52%)",
@@ -109,6 +109,11 @@ function SignInPage() {
         fallbackRedirectUrl={`${basePath}/`}
         appearance={clerkAppearance}
       />
+      <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+        <p className="text-xs text-muted-foreground text-center">
+          💡 <strong>Tip:</strong> Use Google or GitHub OAuth above for instant signup with one click
+        </p>
+      </div>
     </AuthPageWrapper>
   );
 }
@@ -123,6 +128,11 @@ function SignUpPage() {
         fallbackRedirectUrl={`${basePath}/`}
         appearance={clerkAppearance}
       />
+      <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+        <p className="text-xs text-muted-foreground text-center">
+          🚀 <strong>Fast signup:</strong> Google or GitHub above — takes 10 seconds!
+        </p>
+      </div>
     </AuthPageWrapper>
   );
 }
