@@ -40,7 +40,7 @@ function DailyChallengeWidget() {
   return (
     <div className="p-5 rounded-xl border border-border bg-card">
       <div className="flex items-center gap-2 mb-3">
-        <Zap className="w-4 h-4 text-amber-500" />
+        <Zap className="w-4 h-4 text-primary" />
         <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Daily Challenge</span>
         {revealed && (
           <span className={`ml-auto text-xs font-medium ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
@@ -111,18 +111,18 @@ function WeeklyGoalsWidget() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-6 mb-8">
+    <div className="bg-card border border-border rounded-xl p-6 mb-8">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
-            <Target className="w-5 h-5 text-cyan-500" />
+            <Target className="w-5 h-5 text-primary" />
             Weekly Goal
           </h2>
           <p className="text-sm text-muted-foreground">Track your learning progress this week</p>
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className="px-3 py-1.5 text-xs rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-600 font-medium transition-colors"
+          className="px-3 py-1.5 text-xs rounded-lg bg-muted hover:bg-muted/70 text-foreground font-medium transition-colors"
         >
           {isEditing ? "Cancel" : "Edit"}
         </button>
@@ -161,7 +161,7 @@ function WeeklyGoalsWidget() {
 
           <button
             onClick={handleSave}
-            className="w-full px-3 py-2 rounded-lg bg-cyan-500 text-cyan-950 font-medium hover:bg-cyan-600 transition-colors text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity text-sm"
           >
             Save Goals
           </button>
@@ -175,7 +175,7 @@ function WeeklyGoalsWidget() {
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
+                className="h-full bg-primary rounded-full transition-all"
                 style={{ width: `${Math.min(weeklyProgress, 100)}%` }}
               />
             </div>
@@ -191,12 +191,12 @@ function WeeklyGoalsWidget() {
           </div>
 
           {weeklyProgress >= 100 ? (
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <p className="text-xs text-emerald-600 font-medium">🎉 Goal achieved! Keep going to earn more achievements.</p>
+            <div className="p-3 rounded-lg bg-muted border border-border">
+              <p className="text-xs text-foreground font-medium">Goal achieved! Keep going to earn more achievements.</p>
             </div>
           ) : (
-            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <p className="text-xs text-blue-600">
+            <div className="p-3 rounded-lg bg-muted border border-border">
+              <p className="text-xs text-muted-foreground">
                 {goals.topicsPerWeek - estimatedThisWeek} topic{goals.topicsPerWeek - estimatedThisWeek !== 1 ? "s" : ""} left this week
               </p>
             </div>
@@ -222,7 +222,7 @@ const categoryMeta: Record<string, { icon: React.ReactNode; summary: string }> =
 
 const pathKeys = ["beginner", "intermediate", "advanced"] as const;
 const pathAccent: Record<string, string> = {
-  beginner: "bg-emerald-500", intermediate: "bg-violet-500", advanced: "bg-slate-600",
+  beginner: "bg-primary", intermediate: "bg-primary/70", advanced: "bg-primary/40",
 };
 
 function CategoryPanel({ category, idx }: { category: Category; idx: number }) {
@@ -397,14 +397,14 @@ export default function Home() {
             {dueReviews.length > 0 && (
               <div className="mt-4 pt-4 border-t border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <RotateCcw className="w-3.5 h-3.5 text-violet-500" />
+                  <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-xs font-semibold text-muted-foreground">Due for Review</span>
                   <span className="text-xs text-muted-foreground/60">{dueReviews.length} topic{dueReviews.length !== 1 ? "s" : ""}</span>
                 </div>
                 <div className="flex items-center gap-2 overflow-x-auto">
                   {dueReviews.slice(0, 5).map(t => (
                     <Link key={t.slug} href={`/topic/${t.slug}`}>
-                      <span className="inline-flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors flex-shrink-0 px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15">
+                      <span className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors flex-shrink-0 px-2.5 py-1 rounded-full bg-primary/8 border border-primary/20 hover:bg-primary/12">
                         <RotateCcw className="w-2.5 h-2.5" />{t.title}
                       </span>
                     </Link>
@@ -487,7 +487,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div className="flex flex-col justify-center">
-              <p className="text-xs font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2">Test your knowledge</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Test your knowledge</p>
               <h2 className="text-xl font-semibold mb-2">Daily Challenge</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 One question every day, drawn from across all 40 topics. Answer it, read the explanation, and link out to the full article. A new question resets at midnight.

@@ -4026,15 +4026,15 @@ export const categories: Category[] = ["Foundations", "Core Models", "Techniques
 export const difficulties: Difficulty[] = ["Beginner", "Intermediate", "Advanced"];
 
 export const categoryColors: Record<Category, string> = {
-  "Foundations": "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-  "Core Models": "bg-violet-500/20 text-violet-300 border border-violet-500/30",
-  "Techniques": "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30",
-  "Applications": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-  "Advanced Research": "bg-rose-500/20 text-rose-300 border border-rose-500/30",
+  "Foundations":       "bg-muted text-muted-foreground border border-border",
+  "Core Models":       "bg-muted text-muted-foreground border border-border",
+  "Techniques":        "bg-muted text-muted-foreground border border-border",
+  "Applications":      "bg-muted text-muted-foreground border border-border",
+  "Advanced Research": "bg-muted text-muted-foreground border border-border",
 };
 
 export const difficultyColors: Record<Difficulty, string> = {
-  "Beginner": "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-  "Intermediate": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-  "Advanced": "bg-rose-500/20 text-rose-300 border border-rose-500/30",
+  "Beginner":     "bg-muted text-muted-foreground border border-border",
+  "Intermediate": "bg-muted text-muted-foreground border border-border",
+  "Advanced":     "bg-muted text-muted-foreground border border-border",
 };

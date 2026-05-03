@@ -284,8 +284,8 @@ function PrerequisitesBanner({ slug }: { slug: string }) {
   if (incomplete.length === 0) return null;
 
   return (
-    <div className="mb-8 p-4 rounded-md border border-amber-200 dark:border-amber-800/40 bg-amber-50/60 dark:bg-amber-900/10 fade-up">
-      <p className="text-xs font-semibold text-amber-700 dark:text-amber-500 mb-2.5">
+    <div className="mb-8 p-4 rounded-md border border-border bg-muted/40 fade-up">
+      <p className="text-xs font-semibold text-muted-foreground mb-2.5">
         Recommended reading first
       </p>
       <div className="flex flex-wrap gap-2">
@@ -295,7 +295,7 @@ function PrerequisitesBanner({ slug }: { slug: string }) {
             <Link key={t.slug} href={`/topic/${t.slug}`}>
               <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors cursor-pointer ${
                 done
-                  ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                  ? "border-border bg-muted text-foreground"
                   : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/30"
               }`}>
                 {done
@@ -340,7 +340,7 @@ function SelectionToolbar({ x, y, text, onHighlight, onDismiss }: {
   );
 }
 
-/* ── ReadingPrefsPanel ───────────────────────────────────── */
+/* ── ReadingPrefsPanel ───��───────────────────────────────── */
 function ReadingPrefsPanel({ onClose }: { onClose: () => void }) {
   const { fontSize, lineHeight, focusMode, wideColumn, setFontSize, setLineHeight, toggleFocusMode, toggleWideCol } = usePrefs();
   const ref = useRef<HTMLDivElement>(null);
@@ -1006,7 +1006,7 @@ export default function TopicDetail() {
                       <Link href={`/quiz/${slug}`}>
                         <button className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border text-xs font-medium transition-all ${
                           quizScore
-                            ? "border-violet-400/40 bg-violet-50/50 dark:bg-violet-900/10 text-violet-700 dark:text-violet-400 hover:opacity-80"
+                            ? "border-primary/30 bg-primary/5 text-primary hover:opacity-80"
                             : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-muted"
                         }`}>
                           {quizScore

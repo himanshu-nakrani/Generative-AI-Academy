@@ -72,7 +72,7 @@ function UserMenu() {
               </Link>
               <Link href="/analytics" onClick={() => setOpen(false)}>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-muted cursor-pointer transition-colors">
-                  <BarChart3 className="w-4 h-4 text-amber-500" />
+                  <BarChart3 className="w-4 h-4 text-primary" />
                   Analytics
                 </div>
               </Link>
@@ -132,10 +132,10 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
-            <div className="w-7 h-7 rounded-[5px] bg-primary flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_hsl(45_66%_52%/0.35)]">
+            <div className="w-7 h-7 rounded-[5px] bg-primary flex items-center justify-center flex-shrink-0 shadow-[0_2px_8px_hsl(198_45%_38%/0.25)]">
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                <path d="M6.5 1.5L11.5 6.5L6.5 11.5L1.5 6.5L6.5 1.5Z" stroke="hsl(214,22%,8%)" strokeWidth="1.6" strokeLinejoin="round"/>
-                <circle cx="6.5" cy="6.5" r="1.5" fill="hsl(214,22%,8%)"/>
+                <path d="M6.5 1.5L11.5 6.5L6.5 11.5L1.5 6.5L6.5 1.5Z" stroke="white" strokeWidth="1.6" strokeLinejoin="round"/>
+                <circle cx="6.5" cy="6.5" r="1.5" fill="white"/>
               </svg>
             </div>
             <span className="font-semibold text-sm tracking-tight text-foreground">
